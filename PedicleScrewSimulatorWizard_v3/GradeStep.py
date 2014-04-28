@@ -349,7 +349,7 @@ class GradeStep(PedicleScrewSimulatorStep):
         
         #Get scalars to array
         scalarsArray = input.GetPolyData().GetPointData().GetScalars('NRRDImage')
-        self.pointsArray = input.GetPolyData()
+        self.pointsArray = screwModel.GetPolyData()
         
         #Get total number of tuples/points
         value = scalarsArray.GetNumberOfTuples()
@@ -483,9 +483,9 @@ class GradeStep(PedicleScrewSimulatorStep):
         zCenter = 0         
         
         bounds = self.pointsArray.GetPoints().GetBounds()
-        lowerBound = bounds[2] + 17
+        lowerBound = bounds[2] #+ 17
         shaftBounds = 30 # FOR NOW
-        print lowerBound
+        print bounds
         xCenter = (bounds[0] + bounds[1])/2
         zCenter = (bounds[4] + bounds[5])/2
         
@@ -503,6 +503,10 @@ class GradeStep(PedicleScrewSimulatorStep):
                   print "00%"
                   count00 = count00 + point[0]
                   points00 += 1
+                  print xCenter
+                  print point2[0]
+                  print zCenter
+                  print point2[2]  
                   if point2[0] < xCenter and point2[2] >= zCenter:
                       print "Quadrant 1"
                       countQ1_00 = countQ1_00 + point[0]
@@ -523,6 +527,10 @@ class GradeStep(PedicleScrewSimulatorStep):
                   print "10%"
                   count10 = count10 + point[0]
                   points10 += 1
+                  print xCenter
+                  print point2[0]
+                  print zCenter
+                  print point2[2]    
                   if point2[0] < xCenter and point2[2] >= zCenter:
                       print "Quadrant 1"
                       countQ1_10 = countQ1_10 + point[0]

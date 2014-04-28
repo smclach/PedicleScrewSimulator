@@ -8,8 +8,8 @@ class LoadDataStep(PedicleScrewSimulatorStep):
     
     def __init__( self, stepid ):
       self.initialize( stepid )
-      self.setName( '1. Load Volume' )
-      self.setDescription( "Load a volume into the scene. Click 'Load DICOM' to open the DICOM browser window. Click 'Load Other' to import other file types, including .nrrd" )
+      self.setName( '1. Load Image Volume' )
+      self.setDescription( "Load a volume into the scene. Click 'Load DICOM' to open the DICOM browser window. Click 'Load Other Volume' to import other file types, including .nrrd" )
 
       self.__parent = super( LoadDataStep, self )
     
@@ -29,13 +29,17 @@ class LoadDataStep(PedicleScrewSimulatorStep):
       #extract button that launches DICOM browser from widget
       colButtons = self.__dicomWidget.findChildren('ctkCollapsibleButton')
       dicomButton = colButtons[1].findChild('QPushButton')
-      dicomButton.setText('Load DICOM')
+      dicomButton.setText('Load CT-DICOM Images')
       self.__layout.addRow(dicomButton)
       
       #open load data dialog for adding nrrd files
-      self.__loadScrewButton = qt.QPushButton("Load Other")
+      self.__loadScrewButton = qt.QPushButton("Load Other Volume Format")
       self.__layout.addRow(self.__loadScrewButton)
       self.__loadScrewButton.connect('clicked(bool)', self.loadVolume)
+
+      #Active Volume text
+      self.activeText = qt.QLabel("Active Volume Data:")
+      self.__layout.addRow(self.activeText)
 
       #select volume
       #creates combobox and populates it with all vtkMRMLScalarVolumeNodes in the scene

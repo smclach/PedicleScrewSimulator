@@ -8,7 +8,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
 
   def __init__( self, stepid ):
     self.initialize( stepid )
-    self.setName( '2. Define Region of Interest (ROI)' )
+    self.setName( '2. Define Surgical Region of Interest (ROI)' )
     self.setDescription( """Steps:\n  1. Define ROI (click and drag dotted colour box)\n  2. Select starting vertebrae and # to instrument""" )
 
     self.__parent = super( DefineROIStep, self )
@@ -87,6 +87,10 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
 
     #label for ROI selector
     roiLabel = qt.QLabel( 'Select ROI:' )
+    font = roiLabel.font
+    font.setBold(True)
+    roiLabel.setFont(font)
+    
     
     #creates combobox and populates it with all vtkMRMLAnnotationROINodes in the scene
     self.__roiSelector = slicer.qMRMLNodeComboBox()
