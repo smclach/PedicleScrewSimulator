@@ -1,4 +1,4 @@
-from __main__ import qt, ctk
+from __main__ import qt, ctk, slicer
 
 class PedicleScrewSimulatorStep( ctk.ctkWorkflowWidgetStep ) :
 
@@ -13,6 +13,15 @@ class PedicleScrewSimulatorStep( ctk.ctkWorkflowWidgetStep ) :
 
   def parameterNode(self):
     return self.__parameterNode
+    
+  def fiducialNode(self):
+    fiducialNode = self.__parameterNode.GetNodeReference("LandmarksFiducial")
+    if not fiducialNode:
+      ml=slicer.modules.markups.logic()
+      newLandmarksNodeID = ml.AddNewFiducialNode('T')
+      self.__parameterNode.SetNodeReferenceID("LandmarksFiducial", newLandmarksNodeID)
+      fiducialNode = slicer.mrmlScene.GetNodeByID(newLandmarksNodeID)
+    return fiducialNode
 
   def getBoldFont( self ):
     '''

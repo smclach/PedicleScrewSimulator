@@ -256,7 +256,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     clipper = vtk.vtkImageClip()
     clipper.ClipDataOn()
     clipper.SetOutputWholeExtent(int(lowerIJK[0]),int(upperIJK[0]),int(lowerIJK[1]),int(upperIJK[1]),int(lowerIJK[2]),int(upperIJK[2]))
-    clipper.SetInput(image)
+    clipper.SetInputData(image)
     clipper.Update()
     
     #read upper and lower threshold values from clipped volume
@@ -286,9 +286,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
       pNode = self.parameterNode()
       vrNodeID = pNode.GetParameter('vrDisplayNodeID')
       if vrNodeID == '':
-        #self.__vrDisplayNode = slicer.modules.volumerendering.logic().CreateVolumeRenderingDisplayNode()
-        #set rendering type 
-        self.__vrDisplayNode = slicer.vtkMRMLGPUTextureMappingVolumeRenderingDisplayNode()
+        self.__vrDisplayNode = slicer.modules.volumerendering.logic().CreateVolumeRenderingDisplayNode()
         slicer.mrmlScene.AddNode(self.__vrDisplayNode)
         self.__vrDisplayNode.UnRegister(slicer.modules.volumerendering.logic())
         v = slicer.mrmlScene.GetNodeByID(self.parameterNode().GetParameter('baselineVolumeID'))

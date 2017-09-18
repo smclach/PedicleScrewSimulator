@@ -26,26 +26,11 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
         bl[0].hide()
 
     def begin(self):
-      selectionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLSelectionNodeSingleton")
-      # place rulers
-      selectionNode.SetReferenceActivePlaceNodeClassName("vtkMRMLMarkupsFiducialNode")
-      # to place ROIs use the class name vtkMRMLAnnotationROINode
-      interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
-      placeModePersistence = 1
-      interactionNode.SetPlaceModePersistence(placeModePersistence)
-      # mode 1 is Place, can also be accessed via slicer.vtkMRMLInteractionNode().Place
-      interactionNode.SetCurrentInteractionMode(1)
+      # TODO: we could prepare placement mode here
+      pass
 
     def stop(self):
-      selectionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLSelectionNodeSingleton")
-      # place rulers
-      selectionNode.SetReferenceActivePlaceNodeClassName("vtkMRMLMarkupsFiducialNode")
-      # to place ROIs use the class name vtkMRMLAnnotationROINode
-      interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
-      placeModePersistence = 1
-      interactionNode.SetPlaceModePersistence(placeModePersistence)
-      # mode 1 is Place, can also be accessed via slicer.vtkMRMLInteractionNode().Place
-      interactionNode.SetCurrentInteractionMode(2)
+      self.startMeasurements.placeModeEnabled = False
       
     def cameraFocus(self, position):  
       camera = slicer.mrmlScene.GetNodeByID('vtkMRMLCameraNode1')
@@ -81,7 +66,7 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
           print self.table2.currentRow()
           currentFid = self.table2.currentRow()
           position = [0,0,0]
-          self.fiducial = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+          self.fiducial = self.fiducialNode()
           self.fiducial.GetNthFiducialPosition(currentFid,position)
           print position
           self.cameraFocus(position)
@@ -89,7 +74,7 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
         
     def updateTable(self):
       #print pNode.GetParameter('vertebrae')
-      self.fiducial = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+      self.fiducial = self.fiducialNode()
       self.fidNumber = self.fiducial.GetNumberOfFiducials()
       print self.fidNumber
       self.fidLabels = []
@@ -115,7 +100,7 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
       if self.table2.currentColumn() == 0:
           item = self.table2.currentItem()
           self.fidNumber = self.fiducial.GetNumberOfFiducials()
-          self.fiducial = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+          self.fiducial = self.fiducialNode()
           for i in range(0,self.fidNumber):
               if item.text() == self.fiducial.GetNthFiducialLabel(i):
                   deleteIndex = i
@@ -127,23 +112,16 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
           self.table2.removeRow(row)
           
     def lockFiducials(self):
-      fidNode = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')                   
+      fidNode = self.fiducialNode()                   
       slicer.modules.markups.logic().SetAllMarkupsLocked(fidNode,True)
       
     def addFiducials(self):
-      if self.startCount == 0:
-        self.begin()
-        self.startCount = 1
-        self.startMeasurements.setText("Stop Placing")
-      elif self.startCount == 1:
-        self.stop()
-        self.startCount = 0
-        self.startMeasurements.setText("Start Placing")
-        
+      pass
+
     def addFiducialToTable(self, observer, event):
       print event
       print "MODIFIED"
-      self.fiducial = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+      self.fiducial = self.fiducialNode()
       self.fidNumber = self.fiducial.GetNumberOfFiducials()
       slicer.modules.markups.logic().SetAllMarkupsVisibility(self.fiducial,1)
       print self.fidNumber
@@ -186,8 +164,12 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
       
       
       self.__layout = self.__parent.createUserInterface()
-      self.startMeasurements = qt.QPushButton("Start Placing")
-      self.startMeasurements.connect('clicked(bool)', self.addFiducials)
+      self.startMeasurements = slicer.qSlicerMarkupsPlaceWidget()
+      self.startMeasurements.setButtonsVisible(False)
+      self.startMeasurements.placeButton().show()
+      self.startMeasurements.setMRMLScene(slicer.mrmlScene)
+      self.startMeasurements.placeMultipleMarkups = slicer.qSlicerMarkupsPlaceWidget.ForcePlaceMultipleMarkups
+      self.startMeasurements.connect('activeMarkupsFiducialPlaceModeChanged(bool)', self.addFiducials)          
       #self.__layout.addWidget(self.startMeasurements)  
       
       #self.stopMeasurements = qt.QPushButton("Stop Placing")
@@ -317,17 +299,21 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
       interactionNode.SetCurrentInteractionMode(1)
       '''
 
-      fiducialNode = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+      fiducialNode = self.fiducialNode()
+      self.startMeasurements.setCurrentNode(fiducialNode)
       self.fidObserve = fiducialNode.AddObserver('ModifiedEvent', self.addFiducialToTable)
       
       if comingFrom.id() == 'DefineROI':
           self.updateTable() 
      
+    def getLandmarksNode(self):
+      return self.startMeasurements.currentNode()
+     
     def onExit(self, goingTo, transitionType):
       
       if goingTo.id() == 'Measurements' or goingTo.id() == 'DefineROI':
           self.stop()
-          fiducialNode = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+          fiducialNode = self.fiducialNode()
           fiducialNode.RemoveObserver(self.fidObserve)
           self.doStepProcessing()
           print self.table2.cellWidget(0,1).currentText

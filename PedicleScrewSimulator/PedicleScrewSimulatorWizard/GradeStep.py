@@ -59,7 +59,7 @@ class GradeStep(PedicleScrewSimulatorStep):
       self.transformSlider3.connect('valueChanged(double)', self.transformSlider3ValueChanged)
       self.__layout.addRow("Volume Opacity", self.transformSlider3)
       '''
-      self.fiducial = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+      self.fiducial = self.fiducialNode()
       self.fidNumber = self.fiducial.GetNumberOfFiducials()
       
       # Screw Table
@@ -91,7 +91,7 @@ class GradeStep(PedicleScrewSimulatorStep):
           print self.screwTable.currentRow()
           self.currentFid = self.screwTable.currentRow()
           position = [0,0,0]
-          self.fiducial = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+          self.fiducial = self.fiducialNode()
           self.fiducial.GetNthFiducialPosition(self.currentFid,position)
           self.cameraFocus(position)
           self.sliceChange()
@@ -110,7 +110,7 @@ class GradeStep(PedicleScrewSimulatorStep):
       self.itemsLen = []
       self.itemsDia = []
       
-      self.screwList = slicer.modules.PedicleScrewSimulator_v3Widget.screwStep.screwList
+      self.screwList = slicer.modules.PedicleScrewSimulatorWidget.screwStep.screwList
       self.screwNumber = len(self.screwList)
       self.screwTable.setRowCount(self.screwNumber)
 
@@ -156,12 +156,12 @@ class GradeStep(PedicleScrewSimulatorStep):
       for i in range(0, fidCount):
           fidCollection.GetItemAsObject(i).GetAnnotationPointDisplayNode().SetOpacity(0.0)
           
-      self.fidNode = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+      self.fidNode = self.fiducialNode()
       for x in range (0,self.fidNode.GetNumberOfFiducials()):
         print x
         label = self.fidNode.GetNthFiducialLabel(x)
-        level = slicer.modules.PedicleScrewSimulator_v3Widget.landmarksStep.table2.cellWidget(x,1).currentText
-        side = slicer.modules.PedicleScrewSimulator_v3Widget.landmarksStep.table2.cellWidget(x,2).currentText
+        level = slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.cellWidget(x,1).currentText
+        side = slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.cellWidget(x,2).currentText
         self.fiduciallist.append(label + " / " + level + " / " + side)
         print self.fiduciallist    
       

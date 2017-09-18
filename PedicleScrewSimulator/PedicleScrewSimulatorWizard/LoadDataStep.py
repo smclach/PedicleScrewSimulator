@@ -23,6 +23,12 @@ class LoadDataStep(PedicleScrewSimulatorStep):
 
       self.__layout = self.__parent.createUserInterface()  
 
+      #load sample data
+      self.__loadSampleCtDataButton = qt.QPushButton("Load sample CT data")
+      self.__layout.addRow(self.__loadSampleCtDataButton)
+      self.__loadSampleCtDataButton.connect('clicked(bool)', self.loadSampleVolume)
+
+      
       #clones DICOM scriptable module
       self.__dicomWidget = slicer.modules.dicom.widgetRepresentation()
       
@@ -59,11 +65,18 @@ class LoadDataStep(PedicleScrewSimulatorStep):
 
       cam = slicer.mrmlScene.GetNodeByID('vtkMRMLCameraNode1')
       cam.SetAndObserveTransformNodeID('vtkMRMLLinearTransformNode4')
-               
+
+      
     def loadVolume(self):
 
         slicer.util.openAddDataDialog()
     
+    
+    def loadSampleVolume(self):
+      import SampleData
+      sampleDataLogic = SampleData.SampleDataLogic()
+      sampleDataLogic.downloadCTChest()
+
     
     #called when entering step
     def onEntry(self, comingFrom, transitionType):

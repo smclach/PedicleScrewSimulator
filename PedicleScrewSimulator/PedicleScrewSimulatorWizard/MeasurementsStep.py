@@ -47,7 +47,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
     '''    
     def updateTable(self):
       #print pNode.GetParameter('vertebrae')
-      self.fiducial = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+      self.fiducial = self.fiducialNode()
       self.fidNumber = self.fiducial.GetNumberOfFiducials()
       self.fidLabels = []
       self.fidLevels = []
@@ -62,9 +62,9 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       self.angleTable.setRowCount(self.fidNumber)
 
       for i in range(0,self.fidNumber):
-          self.fidLabels.append(slicer.modules.PedicleScrewSimulator_v3Widget.landmarksStep.table2.item(i,0).text())
-          self.fidLevels.append(slicer.modules.PedicleScrewSimulator_v3Widget.landmarksStep.table2.cellWidget(i,1).currentText)
-          self.fidSides.append(slicer.modules.PedicleScrewSimulator_v3Widget.landmarksStep.table2.cellWidget(i,2).currentText)
+          self.fidLabels.append(slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.item(i,0).text())
+          self.fidLevels.append(slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.cellWidget(i,1).currentText)
+          self.fidSides.append(slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.cellWidget(i,2).currentText)
       
       for i in range(0,self.fidNumber):
           Label = str(self.fidLabels[i])
@@ -176,14 +176,14 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       
     def makeFidAdjustments(self):
       if self.adjustCount == 0:
-        fidNode = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')                   
+        fidNode = self.fiducialNode()                   
         slicer.modules.markups.logic().SetAllMarkupsLocked(fidNode,False)
         self.adjustCount = 1
         self.adjustFiducials.setText("Fix Landmarks")
         if self.measureCount == 1:
           self.startMeasure()
       elif self.adjustCount == 1:
-        fidNode = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')                   
+        fidNode = self.fiducialNode()                   
         slicer.modules.markups.logic().SetAllMarkupsLocked(fidNode,True)
         self.adjustCount = 0
         self.adjustFiducials.setText("Adjust Landmarks")
@@ -304,7 +304,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       buttonLayout2.addWidget(self.crosshair)
       self.__layout.addRow(buttonLayout2)
       
-      self.fiducial = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+      self.fiducial = self.fiducialNode()
       self.fidNumber = self.fiducial.GetNumberOfFiducials()
       self.fidLabels = []
       self.fidLevels = []
@@ -313,9 +313,9 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       
       '''
       for i in range(0,self.fidNumber):
-          self.fidLabels.append(slicer.modules.PedicleScrewSimulator_v3Widget.landmarksStep.table2.item(i,0).text())
-          self.fidLevels.append(slicer.modules.PedicleScrewSimulator_v3Widget.landmarksStep.table2.cellWidget(i,1).currentText)
-          self.fidSides.append(slicer.modules.PedicleScrewSimulator_v3Widget.landmarksStep.table2.cellWidget(i,2).currentText)   
+          self.fidLabels.append(slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.item(i,0).text())
+          self.fidLevels.append(slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.cellWidget(i,1).currentText)
+          self.fidSides.append(slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.cellWidget(i,2).currentText)   
           #self.fidLabels.append(self.fiducial.GetNthFiducialLabel(i))
           #position = [0,0,0]
           #self.fiducial.GetNthFiducialPosition(i,position)
@@ -498,7 +498,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
         rulerX = rulers.GetItemAsObject(x)
         rulerX.SetDisplayVisibility(1)
       
-      if entryCount == 1:
+      if self.entryCount == 1:
         self.updateTable()
       
       
