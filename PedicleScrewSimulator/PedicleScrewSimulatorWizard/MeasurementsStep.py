@@ -40,10 +40,9 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
     '''
     def rulerMeasures(self):
       self.rulerList = []
-      rulers = slicer.mrmlScene.GetNodesByClass('vtkMRMLAnnotationRulerNode')
-      for x in range(0,rulers.GetNumberOfItems()):
-        rulerX = rulers.GetItemAsObject(x)
-        self.rulerList.append("%.2f" % rulerX.GetDistanceMeasurement())
+      rulers = slicer.util.getNodesByClass('vtkMRMLAnnotationRulerNode')
+      for ruler in rulers:
+        self.rulerList.append("%.2f" % ruler.GetDistanceMeasurement())
     '''    
     def updateTable(self):
       #print pNode.GetParameter('vertebrae')
@@ -97,7 +96,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
           if self.entryCount == 0:
             self.angleTable.setCellWidget(i,3, self.lengthCombo[i])
             self.angleTable.setCellWidget(i,4, self.widthCombo[i])
-      self.entryCount = 1  
+      #self.entryCount = 1
       # change entry count to update the contents to the list of rulers if = 1   
 
     def onTableCellClicked(self):
@@ -117,12 +116,12 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
     def rulerAdded(self, observer, event):
       print "ruler added"
       print self.entryCount
-      rulers = slicer.mrmlScene.GetNodesByClass('vtkMRMLAnnotationRulerNode')
-      rulerNumber = rulers.GetNumberOfItems()
-      rulerX = rulers.GetItemAsObject(rulerNumber - 1)
+      rulers = slicer.util.getNodesByClass('vtkMRMLAnnotationRulerNode')
+      
+      rulerX = rulers[-1] # last ruler
       self.rulerList.append("%.2f" % rulerX.GetDistanceMeasurement())
       
-      for i in range(0,self.fidNumber):
+      for i in range(self.fidNumber):
         print i
         #self.measuresLength = qt.QComboBox()
         #self.measuresWidth = qt.QComboBox()
@@ -133,10 +132,8 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
         #self.angleTable.setCellWidget(i,4, self.measuresWidth)
     
     def rulerLengthCheck(self, observer, event):
-      rulers = slicer.mrmlScene.GetNodesByClass('vtkMRMLAnnotationRulerNode')
-      rulerNumber = rulers.GetNumberOfItems()
-      for i in range(0,rulerNumber):
-        rulerX = rulers.GetItemAsObject(i)
+      rulers = slicer.util.getNodesByClass('vtkMRMLAnnotationRulerNode')
+      for [i, rulerX] in enumerate(rulers):
         if rulerX[i].GetDistanceMeasurement() == self.rulerList[i].GetDistanceMeasurement():
           print "okay"
         else:
@@ -190,27 +187,19 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
     
     def crosshairVisible(self):
       if self.adjustCount2 == 0:
-        # Enable Slice Intersections
-        viewNodes = slicer.mrmlScene.GetNodesByClass('vtkMRMLSliceCompositeNode')
-        viewNodes.UnRegister(slicer.mrmlScene)
-        viewNodes.InitTraversal()
-        viewNode = viewNodes.GetNextItemAsObject()
-        while viewNode:
+        # Disable Slice Intersections
+        viewNodes = slicer.util.getNodesByClass('vtkMRMLSliceCompositeNode')
+        for viewNode in viewNodes:
           viewNode.SetSliceIntersectionVisibility(0)
-          viewNode = viewNodes.GetNextItemAsObject()
 
         self.adjustCount2 = 1
         self.crosshair.setText("Show Crosshair") 
 
       elif self.adjustCount2 == 1:  
         # Enable Slice Intersections
-        viewNodes = slicer.mrmlScene.GetNodesByClass('vtkMRMLSliceCompositeNode')
-        viewNodes.UnRegister(slicer.mrmlScene)
-        viewNodes.InitTraversal()
-        viewNode = viewNodes.GetNextItemAsObject()
-        while viewNode:
+        viewNodes = slicer.util.getNodesByClass('vtkMRMLSliceCompositeNode')
+        for viewNode in viewNodes:
           viewNode.SetSliceIntersectionVisibility(1)
-          viewNode = viewNodes.GetNextItemAsObject()
 
         self.adjustCount2 = 0
         self.crosshair.setText("Hide Crosshair")   
@@ -258,8 +247,9 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       rulerNode = slicer.mrmlScene.GetNodeByID('vtkMRMLAnnotationHierarchyNode4')
       rulerNode.AddObserver('ModifiedEvent', self.rulerAdded)
       
-      rulers = slicer.mrmlScene.GetNodesByClass('vtkMRMLAnnotationRulerNode')
-      rulers.AddObserver('ModifiedEvent', self.rulerLengthCheck)
+      rulers = slicer.util.getNodesByClass('vtkMRMLAnnotationRulerNode')
+      for ruler in rulers:
+        ruler.AddObserver('ModifiedEvent', self.rulerLengthCheck)
       
       '''
       rs = slicer.mrmlScene.GetNodeByID('vtkMRMLAnnotationRulerNode1')
@@ -460,8 +450,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
                                       
     def validate( self, desiredBranchId ):
       self.__parent.validate( desiredBranchId )
-      #volCollection = slicer.mrmlScene.GetNodesByClass('vtkMRMLScalarVolumeNode')
-      #volCheck = volCollection.GetItemAsObject(0)
+      #volCheck = slicer.util.getNodesByClass('vtkMRMLScalarVolumeNode')[0]
       #if volCheck != None:
       #  self.__parent.validationSucceeded('pass')
       #else:
@@ -485,17 +474,12 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       self.zoomIn()
                   
       # Enable Slice Intersections
-      viewNodes = slicer.mrmlScene.GetNodesByClass('vtkMRMLSliceCompositeNode')
-      viewNodes.UnRegister(slicer.mrmlScene)
-      viewNodes.InitTraversal()
-      viewNode = viewNodes.GetNextItemAsObject()
-      while viewNode:
+      viewNodes = slicer.util.getNodesByClass('vtkMRMLSliceCompositeNode')
+      for viewNode in viewNodes:
         viewNode.SetSliceIntersectionVisibility(1)
-        viewNode = viewNodes.GetNextItemAsObject()
 
-      rulers = slicer.mrmlScene.GetNodesByClass('vtkMRMLAnnotationRulerNode')
-      for x in range(0,rulers.GetNumberOfItems()):
-        rulerX = rulers.GetItemAsObject(x)
+      rulers = slicer.util.getNodesByClass('vtkMRMLAnnotationRulerNode')
+      for rulerX in rulers:
         rulerX.SetDisplayVisibility(1)
       
       if self.entryCount == 1:
@@ -506,18 +490,13 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
     def onExit(self, goingTo, transitionType):
       super(MeasurementsStep, self).onExit(goingTo, transitionType)
       print "exiting"  
-      # Enable Slice Intersections
-      viewNodes = slicer.mrmlScene.GetNodesByClass('vtkMRMLSliceCompositeNode')
-      viewNodes.UnRegister(slicer.mrmlScene)
-      viewNodes.InitTraversal()
-      viewNode = viewNodes.GetNextItemAsObject()
-      while viewNode:
+      # Disable Slice Intersections
+      viewNodes = slicer.util.getNodesByClass('vtkMRMLSliceCompositeNode')
+      for viewNode in viewNodes:
         viewNode.SetSliceIntersectionVisibility(0)
-        viewNode = viewNodes.GetNextItemAsObject()
-         
-      rulers = slicer.mrmlScene.GetNodesByClass('vtkMRMLAnnotationRulerNode')
-      for x in range(0,rulers.GetNumberOfItems()):
-        rulerX = rulers.GetItemAsObject(x)
+       
+      rulers = slicer.util.getNodesByClass('vtkMRMLAnnotationRulerNode')
+      for rulerX in rulers:
         rulerX.SetDisplayVisibility(0)
 
       if goingTo.id() == 'Screw':

@@ -397,9 +397,8 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     roi = self.__roiSelector.currentNode()
     if roi == None:
       self.__parent.validationFailed(desiredBranchId, 'Error', 'Please define ROI!')
-    
-    volCollection = slicer.mrmlScene.GetNodesByClass('vtkMRMLScalarVolumeNode')
-    volCheck = volCollection.GetItemAsObject(0)
+
+    volCheck = slicer.util.getNodesByClass('vtkMRMLScalarVolumeNode')[0]
     if volCheck != None:
       self.__parent.validationSucceeded('pass')
     else:

@@ -22,6 +22,7 @@ class GradeStep(PedicleScrewSimulatorStep):
       self.pointsArray = []
       self.screwContact = []
       self.screwCount = 0
+      self.cvn = None
 
       self.__parent = super( GradeStep, self )
     
@@ -150,11 +151,6 @@ class GradeStep(PedicleScrewSimulatorStep):
       ln.SetViewArrangement(24)
       
       pNode = self.parameterNode()
-
-      fidCollection = slicer.mrmlScene.GetNodesByClass('vtkMRMLAnnotationFiducialNode')
-      fidCount = fidCollection.GetNumberOfItems()
-      for i in range(0, fidCount):
-          fidCollection.GetItemAsObject(i).GetAnnotationPointDisplayNode().SetOpacity(0.0)
           
       self.fidNode = self.fiducialNode()
       for x in range (0,self.fidNode.GetNumberOfFiducials()):
@@ -176,10 +172,6 @@ class GradeStep(PedicleScrewSimulatorStep):
     
       if goingTo.id() == 'Screw':
           self.clearGrade()
-          fidCollection = slicer.mrmlScene.GetNodesByClass('vtkMRMLAnnotationFiducialNode')
-          fidCount = fidCollection.GetNumberOfItems()
-          for i in range(0, fidCount):
-            fidCollection.GetItemAsObject(i).GetAnnotationPointDisplayNode().SetOpacity(1.0)
       
       self.vrUpdate(1.0)
       
@@ -228,11 +220,9 @@ class GradeStep(PedicleScrewSimulatorStep):
         for x in range(0, len(self.fiduciallist)):
             fidName = self.fiduciallist[x]
             print(fidName)
-            collectionT = slicer.mrmlScene.GetNodesByName('Transform-%s' % fidName)
-            transformFid = collectionT.GetItemAsObject(0)
+            transformFid = slicer.util.getNode('Transform-%s' % fidName)
             
-            collectionS = slicer.mrmlScene.GetNodesByName('Screw at point %s' % fidName)
-            screwModel = collectionS.GetItemAsObject(0)
+            screwModel = slicer.util.getNode('Screw at point %s' % fidName)
             screwIndex = x
             
             if screwModel != None:
@@ -266,7 +256,7 @@ class GradeStep(PedicleScrewSimulatorStep):
         #Crop out head of screw
         extract = vtk.vtkExtractPolyDataGeometry()
         extract.SetImplicitFunction(cropBox)
-        extract.SetInput(input.GetPolyData())
+        extract.SetInputData(input.GetPolyData())
         extract.Update()
         
         #PolyData of cropped screw
@@ -284,8 +274,8 @@ class GradeStep(PedicleScrewSimulatorStep):
         
         #Select points on screw within cube
         select = vtk.vtkSelectEnclosedPoints()
-        select.SetInput(input.GetPolyData())
-        select.SetSurface(cropCube.GetOutput())
+        select.SetInputData(input.GetPolyData())
+        select.SetSurfaceData(cropCube.GetOutput())
         select.Update()
         
         return select
@@ -810,9 +800,7 @@ class GradeStep(PedicleScrewSimulatorStep):
         
     def chartContact(self, screwCount):
         # Get the Chart View Node
-        cvns = slicer.mrmlScene.GetNodesByClass('vtkMRMLChartViewNode')
-        cvns.InitTraversal()
-        cvn = cvns.GetNextItemAsObject()
+        cvn = slicer.util.getNodesByClass('vtkMRMLChartViewNode')[0]
         cn = slicer.mrmlScene.AddNode(slicer.vtkMRMLChartNode())
         
         arrayNodes = []
@@ -869,30 +857,27 @@ class GradeStep(PedicleScrewSimulatorStep):
            
     def clearGrade(self):
         #Clear chart
-        self.cvn.SetChartNodeID(None)
+        if self.cvn:
+            self.cvn.SetChartNodeID(None)
 
         
         #For each fiducial, restore original screw model and remove graded screw model
-        fidCollection = slicer.mrmlScene.GetNodesByClass('vtkMRMLAnnotationFiducialNode')
-        fidCount = fidCollection.GetNumberOfItems()
-        for i in range(0, fidCount):
-          fidCollection.GetItemAsObject(i).GetAnnotationPointDisplayNode().SetOpacity(0.0)
-            
-          fidName = fidCollection.GetItemAsObject(i).GetName()
-          collectionS = slicer.mrmlScene.GetNodesByName('Screw at point %s' % fidName)
-          screwModel = collectionS.GetItemAsObject(0)
+        fiducial = self.fiducialNode()
+        fidCount = fiducial.GetNumberOfFiducials()
+        for i in range(fidCount):
+          fiducial.SetNthFiducialVisibility(i, False)
+          fidName = fiducial.GetNthFiducialLabel(i)
+          screwModel = slicer.util.getNode('Screw at point %s' % fidName)
           if screwModel != None:
               modelDisplay = screwModel.GetDisplayNode()
               modelDisplay.SetColor(0.12,0.73,0.91)
               modelDisplay.VisibilityOn()
             
-          collectionG = slicer.mrmlScene.GetNodesByName('Grade model-%s' % fidName)
-          gradeModel = collectionG.GetItemAsObject(0)
+          gradeModel = slicer.util.getNode('Grade model-%s' % fidName)
           if gradeModel != None:
               slicer.mrmlScene.RemoveNode(gradeModel)
           
-          collectionH = slicer.mrmlScene.GetNodesByName('Head %s' % fidName)
-          headModel = collectionH.GetItemAsObject(0)
+          headModel = slicer.util.getNode('Head %s' % fidName)
           if headModel != None:
               slicer.mrmlScene.RemoveNode(headModel)
 

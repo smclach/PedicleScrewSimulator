@@ -141,6 +141,31 @@ class PedicleScrewSimulatorWidget(ScriptedLoadableModuleWidget):
   def cleanup(self):
     pass
 
+  def onReload(self):
+    logging.debug("Reloading PedicleScrewSimulator")
+
+    packageName='PedicleScrewSimulatorWizard'
+    submoduleNames=['PedicleScrewSimulatorStep',
+      'DefineROIStep',
+      'EndStep',
+      'GradeStep',
+      'Helper',
+      'LandmarksStep',
+      'LoadDataStep',
+      'MeasurementsStep',
+      'ScrewStep']
+
+    import imp
+    f, filename, description = imp.find_module(packageName)
+    package = imp.load_module(packageName, f, filename, description)
+    for submoduleName in submoduleNames:
+      f, filename, description = imp.find_module(submoduleName, package.__path__)
+      try:
+          imp.load_module(packageName+'.'+submoduleName, f, filename, description)
+      finally:
+          f.close()
+          
+    ScriptedLoadableModuleWidget.onReload(self)
 
 class PedicleScrewSimulatorTest(ScriptedLoadableModuleTest):
   """
