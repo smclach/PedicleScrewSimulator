@@ -316,7 +316,7 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
           fiducialNode = self.fiducialNode()
           fiducialNode.RemoveObserver(self.fidObserve)
           self.doStepProcessing()
-          print self.table2.cellWidget(0,1).currentText
+          #print self.table2.cellWidget(0,1).currentText
       
       #if goingTo.id() == 'Threshold':
           #slicer.mrmlScene.RemoveNode(self.__outModel)     

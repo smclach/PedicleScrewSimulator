@@ -271,6 +271,7 @@ class GradeStep(PedicleScrewSimulatorStep):
         #Create a cube with bounds equal to that of the screw minus the head (-17)
         cropCube = vtk.vtkCubeSource()
         cropCube.SetBounds(bounds[0],bounds[1],bounds[2],bounds[3]-17,bounds[4],bounds[5])
+        cropCube.Update()
         
         #Select points on screw within cube
         select = vtk.vtkSelectEnclosedPoints()
@@ -345,129 +346,16 @@ class GradeStep(PedicleScrewSimulatorStep):
         value = scalarsArray.GetNumberOfTuples()
         
         #Reset variables
-        point = [0]
-        point2 = [0,0,0]
+        bounds = [0]
+        shaftBounds = 0
+
         corticalCount = 0
         cancellousCount = 0
         totalCount = 0
-        bounds = [0]
-        shaftBounds = 0
-        count00 = 0
-        points00 = 0
-        avg00 = 0.0
-        count10 = 0
-        points10 = 0
-        avg10 = 0.0
-        count20 = 0
-        points20 = 0
-        avg20 = 0.0
-        count30 = 0
-        points30 = 0
-        avg30 = 0.0
-        count40 = 0
-        points40 = 0
-        avg40 = 0.0 
-        count50 = 0
-        points50 = 0
-        avg50 = 0.0 
-        count60 = 0
-        points60 = 0
-        avg60 = 0.0 
-        count70 = 0
-        points70 = 0
-        avg70 = 0.0 
-        count80 = 0
-        points80 = 0
-        avg80 = 0.0 
-        count90 = 0
-        points90 = 0
-        avg90 = 0.0
-        avgTotal = []
-        avgQuad1 = []
-        avgQuad2 = []
-        avgQuad3 = []
-        avgQuad4 = []
-        countQ1_00 = 0
-        pointsQ1_00 = 0
-        countQ2_00 = 0
-        pointsQ2_00 = 0
-        countQ3_00 = 0
-        pointsQ3_00 = 0
-        countQ4_00 = 0
-        pointsQ4_00 = 0
-        countQ1_10 = 0
-        pointsQ1_10 = 0
-        countQ2_10 = 0
-        pointsQ2_10 = 0
-        countQ3_10 = 0
-        pointsQ3_10 = 0
-        countQ4_10 = 0
-        pointsQ4_10 = 0
-        countQ1_20 = 0
-        pointsQ1_20 = 0
-        countQ2_20 = 0
-        pointsQ2_20 = 0
-        countQ3_20 = 0
-        pointsQ3_20 = 0
-        countQ4_20 = 0
-        pointsQ4_20 = 0
-        countQ1_30 = 0
-        pointsQ1_30 = 0
-        countQ2_30 = 0
-        pointsQ2_30 = 0
-        countQ3_30 = 0
-        pointsQ3_30 = 0
-        countQ4_30 = 0
-        pointsQ4_30 = 0
-        countQ1_40 = 0
-        pointsQ1_40 = 0
-        countQ2_40 = 0
-        pointsQ2_40 = 0
-        countQ3_40 = 0
-        pointsQ3_40 = 0
-        countQ4_40 = 0
-        pointsQ4_40 = 0
-        countQ1_50 = 0
-        pointsQ1_50 = 0
-        countQ2_50 = 0
-        pointsQ2_50 = 0
-        countQ3_50 = 0
-        pointsQ3_50 = 0
-        countQ4_50 = 0
-        pointsQ4_50 = 0
-        countQ1_60 = 0
-        pointsQ1_60 = 0
-        countQ2_60 = 0
-        pointsQ2_60 = 0
-        countQ3_60 = 0
-        pointsQ3_60 = 0
-        countQ4_60 = 0
-        pointsQ4_60 = 0
-        countQ1_70 = 0
-        pointsQ1_70 = 0
-        countQ2_70 = 0
-        pointsQ2_70 = 0
-        countQ3_70 = 0
-        pointsQ3_70 = 0
-        countQ4_70 = 0
-        pointsQ4_70 = 0
-        countQ1_80 = 0
-        pointsQ1_80 = 0
-        countQ2_80 = 0
-        pointsQ2_80 = 0
-        countQ3_80 = 0
-        pointsQ3_80 = 0
-        countQ4_80 = 0
-        pointsQ4_80 = 0
-        countQ1_90 = 0
-        pointsQ1_90 = 0
-        countQ2_90 = 0
-        pointsQ2_90 = 0
-        countQ3_90 = 0
-        pointsQ3_90 = 0
-        countQ4_90 = 0
-        pointsQ4_90 = 0
-        
+        count = [0] * 10 # sum of values along the screw
+        points = [0] * 10 # number of points along the screw
+        countQ = [[0] * 10] * 4 # sum of values in countQ[quadrant][longitudinalSection]
+        pointsQ = [[0] * 10] * 4  # number of points in pointQ[quadrant][longitudinalSection]
         
         xCenter = 0
         zCenter = 0         
@@ -480,294 +368,59 @@ class GradeStep(PedicleScrewSimulatorStep):
         zCenter = (bounds[4] + bounds[5])/2
         
         #For each point in the screw model...
+        point = [0]
+        point2 = [0,0,0]
         for i in range(0, value):
             #If the point is in the shaft of the screw...
-            if insidePoints.IsInside(i) == 1:  
-              totalCount += 1
-              #Read scalar value at point to "point" array
-              scalarsArray.GetTupleValue(i, point)
-              print point
-              self.pointsArray.GetPoints().GetPoint(i,point2)
-              print point2
-              if point2[1] >= lowerBound and point2[1] < (lowerBound + (shaftBounds*0.1)):
-                  print "00%"
-                  count00 = count00 + point[0]
-                  points00 += 1
-                  print xCenter
-                  print point2[0]
-                  print zCenter
-                  print point2[2]  
-                  if point2[0] < xCenter and point2[2] >= zCenter:
-                      print "Quadrant 1"
-                      countQ1_00 = countQ1_00 + point[0]
-                      pointsQ1_00 += 1
-                  elif point2[0] >= xCenter and point2[2] >= zCenter:
-                      print "Quadrant 2"
-                      countQ2_00 = countQ2_00 + point[0]
-                      pointsQ2_00 += 1
-                  elif point2[0] < xCenter and point2[2] < zCenter:
-                      print "Quadrant 3"
-                      countQ3_00 = countQ3_00 + point[0]
-                      pointsQ3_00 += 1
-                  else:
-                      print "Quadrant 4"
-                      countQ4_00 = countQ4_00 + point[0]
-                      pointsQ4_00 += 1    
-              elif point2[1] >= (lowerBound + (shaftBounds*0.1)) and point2[1] < (lowerBound + (shaftBounds*0.2)):
-                  print "10%"
-                  count10 = count10 + point[0]
-                  points10 += 1
-                  print xCenter
-                  print point2[0]
-                  print zCenter
-                  print point2[2]    
-                  if point2[0] < xCenter and point2[2] >= zCenter:
-                      print "Quadrant 1"
-                      countQ1_10 = countQ1_10 + point[0]
-                      pointsQ1_10 += 1
-                  elif point2[0] >= xCenter and point2[2] >= zCenter:
-                      print "Quadrant 2"
-                      countQ2_10 = countQ2_10 + point[0]
-                      pointsQ2_10 += 1
-                  elif point2[0] < xCenter and point2[2] < zCenter:
-                      print "Quadrant 3"
-                      countQ3_10 = countQ3_10 + point[0]
-                      pointsQ3_10 += 1
-                  else:
-                      print "Quadrant 4"
-                      countQ4_10 = countQ4_10 + point[0]
-                      pointsQ4_10 += 1  
-              elif point2[1] >= (lowerBound + (shaftBounds*0.2)) and point2[1] < (lowerBound + (shaftBounds*0.3)):
-                  print "20%"
-                  count20 = count20 + point[0]
-                  points20 += 1
-                  if point2[0] < xCenter and point2[2] >= zCenter:
-                      print "Quadrant 1"
-                      countQ1_20 = countQ1_20 + point[0]
-                      pointsQ1_20 += 1
-                  elif point2[0] >= xCenter and point2[2] >= zCenter:
-                      print "Quadrant 2"
-                      countQ2_20 = countQ2_20 + point[0]
-                      pointsQ2_20 += 1
-                  elif point2[0] < xCenter and point2[2] < zCenter:
-                      print "Quadrant 3"
-                      countQ3_20 = countQ3_20 + point[0]
-                      pointsQ3_20 += 1
-                  else:
-                      print "Quadrant 4"
-                      countQ4_20 = countQ4_20 + point[0]
-                      pointsQ4_20 += 1      
-              elif point2[1] >= (lowerBound + (shaftBounds*0.3)) and point2[1] < (lowerBound + (shaftBounds*0.4)):
-                  print "30%"
-                  count30 = count30 + point[0]
-                  points30 += 1
-                  if point2[0] < xCenter and point2[2] >= zCenter:
-                      print "Quadrant 1"
-                      countQ1_30 = countQ1_30 + point[0]
-                      pointsQ1_30 += 1
-                  elif point2[0] >= xCenter and point2[2] >= zCenter:
-                      print "Quadrant 2"
-                      countQ2_30 = countQ2_30 + point[0]
-                      pointsQ2_30 += 1
-                  elif point2[0] < xCenter and point2[2] < zCenter:
-                      print "Quadrant 3"
-                      countQ3_30 = countQ3_30 + point[0]
-                      pointsQ3_30 += 1
-                  else:
-                      print "Quadrant 4"  
-                      countQ4_30 = countQ4_30 + point[0]
-                      pointsQ4_30 += 1    
-              elif point2[1] >= (lowerBound + (shaftBounds*0.4)) and point2[1] < (lowerBound + (shaftBounds*0.5)):
-                  print "40%"
-                  count40 = count40 + point[0]
-                  points40 += 1
-                  if point2[0] < xCenter and point2[2] >= zCenter:
-                      print "Quadrant 1"
-                      countQ1_40 = countQ1_40 + point[0]
-                      pointsQ1_40 += 1
-                  elif point2[0] >= xCenter and point2[2] >= zCenter:
-                      print "Quadrant 2"
-                      countQ2_40 = countQ2_40 + point[0]
-                      pointsQ2_40 += 1
-                  elif point2[0] < xCenter and point2[2] < zCenter:
-                      print "Quadrant 3"
-                      countQ3_40 = countQ3_40 + point[0]
-                      pointsQ3_40 += 1
-                  else:
-                      print "Quadrant 4"  
-                      countQ4_40 = countQ4_40 + point[0]
-                      pointsQ4_40 += 1    
-              elif point2[1] >= (lowerBound + (shaftBounds*0.5)) and point2[1] < (lowerBound + (shaftBounds*0.6)):
-                  print "50%"
-                  count50 = count50 + point[0]
-                  points50 += 1
-                  if point2[0] < xCenter and point2[2] >= zCenter:
-                      print "Quadrant 1"
-                      countQ1_50 = countQ1_50 + point[0]
-                      pointsQ1_50 += 1 
-                  elif point2[0] >= xCenter and point2[2] >= zCenter:
-                      print "Quadrant 2"
-                      countQ2_50 = countQ2_50 + point[0]
-                      pointsQ2_50 += 1
-                  elif point2[0] < xCenter and point2[2] < zCenter:
-                      print "Quadrant 3"
-                      countQ3_50 = countQ3_50 + point[0]
-                      pointsQ3_50 += 1
-                  else:
-                      print "Quadrant 4" 
-                      countQ4_50 = countQ4_50 + point[0]
-                      pointsQ4_50 += 1     
-              elif point2[1] >= (lowerBound + (shaftBounds*0.6)) and point2[1] < (lowerBound + (shaftBounds*0.7)):
-                  print "60%"
-                  count60 = count60 + point[0]
-                  points60 += 1
-                  if point2[0] < xCenter and point2[2] >= zCenter:
-                      print "Quadrant 1"
-                      countQ1_60 = countQ1_60 + point[0]
-                      pointsQ1_60 += 1
-                  elif point2[0] >= xCenter and point2[2] >= zCenter:
-                      print "Quadrant 2"
-                      countQ2_60 = countQ2_60 + point[0]
-                      pointsQ2_60 += 1
-                  elif point2[0] < xCenter and point2[2] < zCenter:
-                      print "Quadrant 3"
-                      countQ3_60 = countQ3_60 + point[0]
-                      pointsQ3_60 += 1
-                  else:
-                      print "Quadrant 4"  
-                      countQ4_60 = countQ4_60 + point[0]
-                      pointsQ4_60 += 1    
-              elif point2[1] >= (lowerBound + (shaftBounds*0.7)) and point2[1] < (lowerBound + (shaftBounds*0.8)):
-                  print "70%"
-                  count70 = count70 + point[0]
-                  points70 += 1
-                  if point2[0] < xCenter and point2[2] >= zCenter:
-                      print "Quadrant 1" 
-                      countQ1_70 = countQ1_70 + point[0]
-                      pointsQ1_70 += 1 
-                  elif point2[0] >= xCenter and point2[2] >= zCenter:
-                      print "Quadrant 2"
-                      countQ2_70 = countQ2_70 + point[0]
-                      pointsQ2_70 += 1 
-                  elif point2[0] < xCenter and point2[2] < zCenter:
-                      print "Quadrant 3"
-                      countQ3_70 = countQ3_70 + point[0]
-                      pointsQ3_70 += 1 
-                  else:
-                      print "Quadrant 4"  
-                      countQ4_70 = countQ4_70 + point[0]
-                      pointsQ4_70 += 1     
-              elif point2[1] >= (lowerBound + (shaftBounds*0.8)) and point2[1] < (lowerBound + (shaftBounds*0.9)):
-                  print "80%"
-                  count80 = count80 + point[0]
-                  points80 += 1
-                  if point2[0] < xCenter and point2[2] >= zCenter:
-                      print "Quadrant 1"
-                      countQ1_80 = countQ1_80 + point[0]
-                      pointsQ1_80 += 1
-                  elif point2[0] >= xCenter and point2[2] >= zCenter:
-                      print "Quadrant 2"
-                      countQ2_80 = countQ2_80 + point[0]
-                      pointsQ2_80 += 1
-                  elif point2[0] < xCenter and point2[2] < zCenter:
-                      print "Quadrant 3"
-                      countQ3_80 = countQ3_80 + point[0]
-                      pointsQ3_80 += 1
-                  else:
-                      print "Quadrant 4" 
-                      countQ4_80 = countQ4_80 + point[0]
-                      pointsQ4_80 += 1     
-              elif point2[1] >= (lowerBound + (shaftBounds*0.9)) and point2[1] < (lowerBound + (shaftBounds*1)):
-                  print "90%"
-                  count90 = count90 + point[0]
-                  points90 += 1
-                  if point2[0] < xCenter and point2[2] >= zCenter:
-                      print "Quadrant 1"
-                      countQ1_90 = countQ1_90 + point[0]
-                      pointsQ1_90 += 1
-                  elif point2[0] >= xCenter and point2[2] >= zCenter:
-                      print "Quadrant 2"
-                      countQ2_90 = countQ2_90 + point[0]
-                      pointsQ2_90 += 1
-                  elif point2[0] < xCenter and point2[2] < zCenter:
-                      print "Quadrant 3"
-                      countQ3_90 = countQ3_90 + point[0]
-                      pointsQ3_90 += 1
-                  else:
-                      print "Quadrant 4" 
-                      countQ4_90 = countQ4_90 + point[0]
-                      pointsQ4_90 += 1        
-              else:
-                  print "no" 
-                 
-              #print totalCount
-              #Keep track of number of points that fall into cortical threshold and cancellous threshold respectively
-              if point[0] >= self.__corticalMin:
-                  corticalCount += 1
-              elif point[0] < self.__corticalMin and point[0] >= self.__cancellousMin:
-                  cancellousCount += 1
-        #Calculate averages
-        avgQuad1.extend([float(countQ1_00 / pointsQ1_00), float(countQ1_10 / pointsQ1_10), float(countQ1_20 / pointsQ1_20), float(countQ1_30 / pointsQ1_30), float(countQ1_40 / pointsQ1_40), float(countQ1_50 / pointsQ1_50), float(countQ1_60 / pointsQ1_60), float(countQ1_70 / pointsQ1_70), float(countQ1_80 / pointsQ1_80), float(countQ1_90 / pointsQ1_90)])
-        avgQuad2.extend([float(countQ2_00 / pointsQ2_00), float(countQ2_10 / pointsQ2_10), float(countQ2_20 / pointsQ2_20), float(countQ2_30 / pointsQ2_30), float(countQ2_40 / pointsQ2_40), float(countQ2_50 / pointsQ2_50), float(countQ2_60 / pointsQ2_60), float(countQ2_70 / pointsQ2_70), float(countQ2_80 / pointsQ2_80), float(countQ2_90 / pointsQ2_90)])
-        avgQuad3.extend([float(countQ3_00 / pointsQ3_00), float(countQ3_10 / pointsQ3_10), float(countQ3_20 / pointsQ3_20), float(countQ3_30 / pointsQ3_30), float(countQ3_40 / pointsQ3_40), float(countQ3_50 / pointsQ3_50), float(countQ3_60 / pointsQ3_60), float(countQ3_70 / pointsQ3_70), float(countQ3_80 / pointsQ3_80), float(countQ3_90 / pointsQ3_90)])
-        avgQuad4.extend([float(countQ4_00 / pointsQ4_00), float(countQ4_10 / pointsQ4_10), float(countQ4_20 / pointsQ4_20), float(countQ4_30 / pointsQ4_30), float(countQ4_40 / pointsQ4_40), float(countQ4_50 / pointsQ4_50), float(countQ4_60 / pointsQ4_60), float(countQ4_70 / pointsQ4_70), float(countQ4_80 / pointsQ4_80), float(countQ4_90 / pointsQ4_90)])
-        print avgQuad1
-        print avgQuad2
-        print avgQuad3
-        print avgQuad4
+            if insidePoints.IsInside(i) != 1:
+                continue
+            totalCount += 1
+            #Read scalar value at point to "point" array
+            scalarsArray.GetTypedTuple(i, point)
+            #print point
+            self.pointsArray.GetPoints().GetPoint(i,point2)
+            #print point2
 
-        if points00 != 0:
-            avg00 = count00 / points00
-            avgTotal.append(avg00)
-        if points10 != 0:
-            avg10 = count10 / points10
-            avgTotal.append(avg10)
-        if points20 != 0:
-            avg20 = count20 / points20
-            avgTotal.append(avg20)
-        if points30 != 0:
-            avg30 = count30 / points30
-            avgTotal.append(avg30)
-        if points40 != 0:
-            avg40 = count40 / points40
-            avgTotal.append(avg40)
-        if points50 != 0:
-            avg50 = count50 / points50
-            avgTotal.append(avg50)
-        if points60 != 0:
-            avg60 = count60 / points60
-            avgTotal.append(avg60)
-        if points70 != 0:
-            avg70 = count70 / points70
-            avgTotal.append(avg70)
-        if points80 != 0:
-            avg80 = count80 / points80
-            avgTotal.append(avg80)
-        if points90 != 0:
-            avg90 = count90 / points90
-            avgTotal.append(avg90)    
-        print avg00
-        print points00
-        print avg10
-        print points10
-        print avg20
-        print points20
-        print avg30
-        print points30
-        print avg40
-        print points40
-        print avg50
-        print points50
-        print avg60
-        print points60
-        print avg70
-        print points70
-        print avg80
-        print points80
-        print avg90
-        print points90
-        
-        self.screwContact.insert(screwIndex, avgTotal)
+            longitudinalIndex = int(math.floor((point2[1]-lowerBound)/shaftBounds * 10.0))
+            if longitudinalIndex<0 or longitudinalIndex>=10:
+              continue
+
+            if point2[0] < xCenter and point2[2] >= zCenter:
+                quadrantIndex = 0
+            elif point2[0] >= xCenter and point2[2] >= zCenter:
+                quadrantIndex = 1
+            elif point2[0] < xCenter and point2[2] < zCenter:
+                quadrantIndex = 2
+            else:
+                quadrantIndex = 3
+
+            count[longitudinalIndex] += point[0]
+            points[longitudinalIndex] += 1
+            countQ[quadrantIndex][longitudinalIndex] += point[0]
+            pointsQ[quadrantIndex][longitudinalIndex] += 1
+
+            #print totalCount
+            #Keep track of number of points that fall into cortical threshold and cancellous threshold respectively
+            if point[0] >= self.__corticalMin:
+              corticalCount += 1
+            elif point[0] < self.__corticalMin and point[0] >= self.__cancellousMin:
+              cancellousCount += 1
+
+        #Calculate averages
+        avgQuad = [[0] * 10] * 4 # average in quadrants
+        for quadrantIndex in range(4):
+            for longitudinalIndex in range(10):
+                numSamples = pointsQ[quadrantIndex][longitudinalIndex]
+                if numSamples == 0:
+                    continue
+                avgQuad[quadrantIndex][longitudinalIndex] = float(countQ[quadrantIndex][longitudinalIndex] / numSamples)
+
+        avg = [0.0] * 10 # average along the screw
+        for longitudinalIndex in range(10):
+            if points[longitudinalIndex] > 0:
+                avg[longitudinalIndex] = count[longitudinalIndex] / points[longitudinalIndex]
+
+        self.screwContact.insert(screwIndex, avg)
         '''
               
         '''
@@ -775,10 +428,7 @@ class GradeStep(PedicleScrewSimulatorStep):
         corticalPercent = float(corticalCount) / float(totalCount) *100
         cancellousPercent = float(cancellousCount) / float(totalCount) *100
         otherPercent = 100 - corticalPercent - cancellousPercent
-        
-        print corticalPercent
-        print cancellousPercent
-        
+
         coP = str("%.0f" % corticalPercent)
         caP = str("%.0f" % cancellousPercent)
         otP = str("%.0f" % otherPercent)

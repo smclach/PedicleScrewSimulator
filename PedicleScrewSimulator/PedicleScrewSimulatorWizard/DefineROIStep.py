@@ -426,7 +426,29 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
         pNode.SetParameter('vrDisplayNodeID', self.__vrDisplayNode.GetID())
         
     if goingTo.id() == 'Landmarks': # Change to next step
+    
+        #create progress bar dialog
+        self.progress = qt.QProgressDialog(slicer.util.mainWindow())
+        self.progress.minimumDuration = 0
+        self.progress.show()
+        self.progress.setValue(0)
+        self.progress.setMaximum(0)
+        self.progress.setCancelButton(0)
+        self.progress.setMinimumWidth(500)
+        self.progress.setWindowModality(2)
+     
+        self.progress.setLabelText('Cropping and resampling volume...')
+        slicer.app.processEvents(qt.QEventLoop.ExcludeUserInputEvents)
+        self.progress.repaint()
+    
         self.doStepProcessing()
+        
+        #close progress bar
+        self.progress.setValue(2)
+        self.progress.repaint()
+        slicer.app.processEvents(qt.QEventLoop.ExcludeUserInputEvents)
+        self.progress.close()
+        self.progress = None
 
     super(DefineROIStep, self).onExit(goingTo, transitionType)
 
@@ -451,8 +473,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     '''
     #crop scalar volume
     pNode = self.parameterNode()
-    
-        
+
     pNode.SetParameter('vertebra', self.vSelector.currentText)
     pNode.SetParameter('inst_length', self.iSelector.currentText)
     pNode.SetParameter('approach', self.aSelector.currentText)
