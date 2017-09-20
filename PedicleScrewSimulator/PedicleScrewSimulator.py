@@ -1,0 +1,222 @@
+import os
+import unittest
+import vtk, qt, ctk, slicer
+from slicer.ScriptedLoadableModule import *
+import logging
+
+import PedicleScrewSimulatorWizard
+
+#
+# PedicleScrewSimulator
+#
+
+class PedicleScrewSimulator(ScriptedLoadableModule):
+  """Uses ScriptedLoadableModule base class, available at:
+  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+  """
+
+  def __init__(self, parent):
+    ScriptedLoadableModule.__init__(self, parent)
+    self.parent.title = "Pedicle Screw Simulator"
+    self.parent.categories = ["Training"]
+    self.parent.dependencies = []
+    self.parent.contributors = ["Brendan Polley (University of Toronto)",
+      "Stewart McLachlin (Sunnybrook Research Institute)",
+      "Cari Whyne (Sunnybrook Research Institute)"]
+    self.parent.helpText = """
+Pedicle Screw Simulator. See more details here: https://github.com/smclach/PedicleScrewSimulator
+"""
+    self.parent.acknowledgementText = """
+Orthopaedic Biomechanics Laboratory, Sunnybrook Health Sciences Centre.
+""" # replace with organization, grant and thanks.
+
+#
+# PedicleScrewSimulatorWidget
+#
+
+class PedicleScrewSimulatorWidget(ScriptedLoadableModuleWidget):
+  """Uses ScriptedLoadableModuleWidget base class, available at:
+  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+  """
+
+  def setup(self):
+    ScriptedLoadableModuleWidget.setup(self)
+
+    # Instantiate and connect widgets ...
+
+    self.workflow = ctk.ctkWorkflow()
+
+    workflowWidget = ctk.ctkWorkflowStackedWidget()
+    workflowWidget.setWorkflow( self.workflow )
+
+    # create all wizard steps
+    self.loadDataStep = PedicleScrewSimulatorWizard.LoadDataStep( 'LoadData'  )
+    self.defineROIStep = PedicleScrewSimulatorWizard.DefineROIStep( 'DefineROI'  )
+    self.measurementsStep = PedicleScrewSimulatorWizard.MeasurementsStep( 'Measurements'  )
+    self.landmarksStep = PedicleScrewSimulatorWizard.LandmarksStep( 'Landmarks' )
+    self.screwStep = PedicleScrewSimulatorWizard.ScrewStep( 'Screw' )
+    self.gradeStep = PedicleScrewSimulatorWizard.GradeStep( 'Grade' )
+    self.endStep = PedicleScrewSimulatorWizard.EndStep( 'Final'  )
+    
+    # add the wizard steps to an array for convenience
+    allSteps = []
+
+    allSteps.append( self.loadDataStep )
+    allSteps.append( self.defineROIStep )
+    allSteps.append( self.landmarksStep)
+    allSteps.append( self.measurementsStep )
+    allSteps.append( self.screwStep)
+    allSteps.append( self.gradeStep)
+    allSteps.append( self.endStep )
+    
+    
+    # Add transition 
+    # Check if volume is loaded
+    self.workflow.addTransition( self.loadDataStep, self.defineROIStep )
+    
+    self.workflow.addTransition( self.defineROIStep, self.landmarksStep, 'pass', ctk.ctkWorkflow.Bidirectional )
+    self.workflow.addTransition( self.defineROIStep, self.loadDataStep, 'fail', ctk.ctkWorkflow.Bidirectional  )
+    
+    self.workflow.addTransition( self.landmarksStep, self.measurementsStep, 'pass', ctk.ctkWorkflow.Bidirectional )
+    self.workflow.addTransition( self.landmarksStep, self.measurementsStep, 'fail', ctk.ctkWorkflow.Bidirectional )
+    
+    self.workflow.addTransition( self.measurementsStep, self.screwStep, 'pass', ctk.ctkWorkflow.Bidirectional )
+    self.workflow.addTransition( self.measurementsStep, self.screwStep, 'fail', ctk.ctkWorkflow.Bidirectional )
+    
+    self.workflow.addTransition( self.screwStep, self.gradeStep, 'pass', ctk.ctkWorkflow.Bidirectional )
+    self.workflow.addTransition( self.screwStep, self.gradeStep, 'fail', ctk.ctkWorkflow.Bidirectional )
+          
+    self.workflow.addTransition( self.gradeStep, self.endStep )
+           
+    nNodes = slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLScriptedModuleNode')
+
+    self.parameterNode = None
+    for n in xrange(nNodes):
+      compNode = slicer.mrmlScene.GetNthNodeByClass(n, 'vtkMRMLScriptedModuleNode')
+      nodeid = None
+      if compNode.GetModuleName() == 'PedicleScrewSimulator':
+        self.parameterNode = compNode
+        print 'Found existing PedicleScrewSimulator parameter node'
+        break
+    if self.parameterNode == None:
+      self.parameterNode = slicer.vtkMRMLScriptedModuleNode()
+      self.parameterNode.SetModuleName('PedicleScrewSimulator')
+      slicer.mrmlScene.AddNode(self.parameterNode)
+ 
+    for s in allSteps:
+        s.setParameterNode (self.parameterNode)
+    
+    
+    # restore workflow step
+    currentStep = self.parameterNode.GetParameter('currentStep')
+    
+    if currentStep != '':
+      print 'Restoring workflow step to ', currentStep
+      if currentStep == 'LoadData':
+        self.workflow.setInitialStep(self.loadDataStep)
+      if currentStep == 'DefineROI':
+        self.workflow.setInitialStep(self.defineROIStep)
+      if currentStep == 'Measurements':
+        self.workflow.setInitialStep(self.measurementsStep)
+      if currentStep == 'Landmarks':
+        self.workflow.setInitialStep(self.landmarksStep)
+      if currentStep == 'Screw':
+        self.workflow.setInitialStep(self.screwStep) 
+      if currentStep == 'Grade':
+        self.workflow.setInitialStep(self.gradeStep)   
+      if currentStep == 'Final':
+        self.workflow.setInitialStep(self.endStep)
+    else:
+      print 'currentStep in parameter node is empty!'
+    
+    
+    # start the workflow and show the widget
+    self.workflow.start()
+    workflowWidget.visible = True
+    self.layout.addWidget( workflowWidget )
+
+    # compress the layout
+    #self.layout.addStretch(1)        
+
+  def cleanup(self):
+    pass
+
+  def onReload(self):
+    logging.debug("Reloading PedicleScrewSimulator")
+
+    packageName='PedicleScrewSimulatorWizard'
+    submoduleNames=['PedicleScrewSimulatorStep',
+      'DefineROIStep',
+      'EndStep',
+      'GradeStep',
+      'Helper',
+      'LandmarksStep',
+      'LoadDataStep',
+      'MeasurementsStep',
+      'ScrewStep']
+
+    import imp
+    f, filename, description = imp.find_module(packageName)
+    package = imp.load_module(packageName, f, filename, description)
+    for submoduleName in submoduleNames:
+      f, filename, description = imp.find_module(submoduleName, package.__path__)
+      try:
+          imp.load_module(packageName+'.'+submoduleName, f, filename, description)
+      finally:
+          f.close()
+          
+    ScriptedLoadableModuleWidget.onReload(self)
+
+class PedicleScrewSimulatorTest(ScriptedLoadableModuleTest):
+  """
+  This is the test case for your scripted module.
+  Uses ScriptedLoadableModuleTest base class, available at:
+  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+  """
+
+  def setUp(self):
+    """ Do whatever is needed to reset the state - typically a scene clear will be enough.
+    """
+    slicer.mrmlScene.Clear(0)
+
+  def runTest(self):
+    """Run as few or as many tests as needed here.
+    """
+    self.setUp()
+    self.test_PedicleScrewSimulator1()
+
+  def test_PedicleScrewSimulator1(self):
+    """ Ideally you should have several levels of tests.  At the lowest level
+    tests should exercise the functionality of the logic with different inputs
+    (both valid and invalid).  At higher levels your tests should emulate the
+    way the user would interact with your code and confirm that it still works
+    the way you intended.
+    One of the most important features of the tests is that it should alert other
+    developers when their changes will have an impact on the behavior of your
+    module.  For example, if a developer removes a feature that you depend on,
+    your test should break so they know that the feature is needed.
+    """
+
+    self.delayDisplay("Starting the test")
+    #
+    # first, get some data
+    #
+    import urllib
+    downloads = (
+        ('http://slicer.kitware.com/midas3/download?items=5767', 'FA.nrrd', slicer.util.loadVolume),
+        )
+
+    for url,name,loader in downloads:
+      filePath = slicer.app.temporaryPath + '/' + name
+      if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
+        logging.info('Requesting download %s from %s...\n' % (name, url))
+        urllib.urlretrieve(url, filePath)
+      if loader:
+        logging.info('Loading %s...' % (name,))
+        loader(filePath)
+    self.delayDisplay('Finished with download and loading')
+
+    volumeNode = slicer.util.getNode(pattern="FA")
+    logic = PedicleScrewSimulatorLogic()
+    self.assertIsNotNone( logic.hasImageData(volumeNode) )
+    self.delayDisplay('Test passed!')

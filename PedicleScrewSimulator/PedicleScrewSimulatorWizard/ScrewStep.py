@@ -6,6 +6,7 @@ import PythonQt
 import math
 import os
 import time
+import logging
 
 class ScrewStep(PedicleScrewSimulatorStep):
     
@@ -23,6 +24,8 @@ class ScrewStep(PedicleScrewSimulatorStep):
       self.matrixScrew = vtk.vtkMatrix4x4()
       self.fiduciallist = []
       self.screwSummary = []
+      
+      self.approach = None
       
       self.screwList = []
       self.currentFidIndex = 0
@@ -121,7 +124,7 @@ class ScrewStep(PedicleScrewSimulatorStep):
       #self.fiducial.addItem("Select an insertion site.")
       self.fiducial.addItems(self.fiduciallist)
       self.connect(self.fiducial, PythonQt.QtCore.SIGNAL('activated(QString)'), self.fiducial_chosen)
-      self.connect(self.fiducial, PythonQt.QtCore.SIGNAL('activated(QString)'), self.fidChanged)
+      #self.connect(self.fiducial, PythonQt.QtCore.SIGNAL('activated(QString)'), self.fidChanged)
       
       #self.screwGridLayout.addWidget(self.fiducial,0,0)
       
@@ -321,14 +324,14 @@ class ScrewStep(PedicleScrewSimulatorStep):
       print self.screwList
     
     def updateMeasurements(self):
-      pedicleLength = slicer.modules.PedicleScrewSimulator_v3Widget.measurementsStep.angleTable.cellWidget(self.currentFidIndex,3).currentText
-      pedicleWidth = slicer.modules.PedicleScrewSimulator_v3Widget.measurementsStep.angleTable.cellWidget(self.currentFidIndex,4).currentText
+      pedicleLength = slicer.modules.PedicleScrewSimulatorWidget.measurementsStep.angleTable.cellWidget(self.currentFidIndex,3).currentText
+      pedicleWidth = slicer.modules.PedicleScrewSimulatorWidget.measurementsStep.angleTable.cellWidget(self.currentFidIndex,4).currentText
       self.lengthMeasure.setText(pedicleLength + " mm")
       self.widthMeasure.setText(pedicleWidth + " mm")
       print pedicleLength
       
     def screwLandmarks(self):
-      self.fiducial = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+      self.fiducial = self.fiducialNode()
       self.fidNumber = self.fiducial.GetNumberOfFiducials()
       self.fidLabels = []
       self.fidLevels = []
@@ -336,9 +339,9 @@ class ScrewStep(PedicleScrewSimulatorStep):
       self.fidLevelSide = []
       
       for i in range(0,self.fidNumber):
-          self.fidLabels.append(slicer.modules.PedicleScrewSimulator_v3Widget.measurementsStep.angleTable.item(i,0).text())
-          self.fidLevels.append(slicer.modules.PedicleScrewSimulator_v3Widget.measurementsStep.angleTable.cellWidget(i,1).currentText)
-          self.fidSides.append(slicer.modules.PedicleScrewSimulator_v3Widget.measurementsStep.angleTable.cellWidget(i,2).currentText)
+          self.fidLabels.append(slicer.modules.PedicleScrewSimulatorWidget.measurementsStep.angleTable.item(i,0).text())
+          self.fidLevels.append(slicer.modules.PedicleScrewSimulatorWidget.measurementsStep.angleTable.cellWidget(i,1).currentText)
+          self.fidSides.append(slicer.modules.PedicleScrewSimulatorWidget.measurementsStep.angleTable.cellWidget(i,2).currentText)
           #self.fidLevelSide.append(self.fidLevels[i] + " " + self.fidSides[i])
       
       print self.fidLevelSide
@@ -377,9 +380,8 @@ class ScrewStep(PedicleScrewSimulatorStep):
         self.driveTemp = 0
         
         #self.transformSlider3.reset()
-        
-        collectionS = slicer.mrmlScene.GetNodesByName('Screw at point %s' % self.currentFidLabel)
-        screwCheck = collectionS.GetItemAsObject(0)
+
+        screwCheck = slicer.util.getNode('Screw at point %s' % self.currentFidLabel)
         
         if screwCheck == None:
             self.transformSlider1.setValue(0)
@@ -432,7 +434,8 @@ class ScrewStep(PedicleScrewSimulatorStep):
         
     def combo_chosen(self):
         if self.__length != "Select a length (mm)" and self.__diameter != "Select a diameter (mm)":
-          self.screwPath = os.path.join(os.path.dirname(__file__), 'screws/scaled_' + self.__length + 'x' + self.__diameter + '.vtk')
+          self.screwPath = os.path.join(os.path.dirname(slicer.modules.pediclescrewsimulator.path), 'Resources/ScrewModels/scaled_' + self.__length + 'x' + self.__diameter + '.vtk')
+          self.screwPath = self.screwPath.replace("\\","/")
           print(self.screwPath)
           self.__loadScrewButton.enabled = True
           #self.screwName = 'scaled_' + text
@@ -440,68 +443,59 @@ class ScrewStep(PedicleScrewSimulatorStep):
           
     def loadScrew(self):    
         print "load screw button"
-        self.fidChanged
-        
-        fid = self.fidNode
-        
-        collectionS = slicer.mrmlScene.GetNodesByName('Screw at point %s' % self.currentFidLabel)
-        screwCheck = collectionS.GetItemAsObject(0)
-        
-        if screwCheck == None:
-            screwDescrip = ["0","0","0","0","0","0"]
-            screwModel = slicer.modules.models.logic().AddModel(self.screwPath)
-            if screwModel != None:
-              fid.AddObserver('ModifiedEvent', self.fidMove)
-            
-              matrix = vtk.vtkMatrix4x4()
-              matrix.DeepCopy((1, 0, 0, self.coords[0],
-                               0, -1, 0, self.coords[1],
-                               0, 0, -1, self.coords[2],
-                               0, 0, 0, 1))
-            
-              transformScrewTemp = slicer.vtkMRMLLinearTransformNode()
-              transformScrewTemp.SetName("Transform-%s" % self.currentFidLabel)
-              slicer.mrmlScene.AddNode(transformScrewTemp)
-              transformScrewTemp.ApplyTransformMatrix(matrix)
-            
-            
-              screwModel.SetName('Screw at point %s' % self.currentFidLabel)
-              screwModel.SetAndObserveTransformNodeID(transformScrewTemp.GetID())
-           
-            
-              modelDisplay = screwModel.GetDisplayNode()
-              modelDisplay.SetColor(0.12,0.73,0.91)
-              modelDisplay.SetDiffuse(0.90)
-              modelDisplay.SetAmbient(0.10)
-              modelDisplay.SetSpecular(0.20)
-              modelDisplay.SetPower(10.0)
-              modelDisplay.SetSliceIntersectionVisibility(True)
-              screwModel.SetAndObserveDisplayNodeID(modelDisplay.GetID())
-              
-              
-              screwDescrip[0] = self.currentFidLabel
-              screwDescrip[1] = self.__length
-              screwDescrip[2] = self.__diameter
-              
-              self.screwList.append(screwDescrip)
-              
-            
-              
-            else:
-                return
-        
-        else:
+        #self.fidChanged
+
+        screwCheck = slicer.util.getNode('Screw at point %s' % self.currentFidLabel)
+        if screwCheck != None:
+            # screw already loaded
             return
-        
+
+        screwDescrip = ["0","0","0","0","0","0"]
+        screwModel = slicer.modules.models.logic().AddModel(self.screwPath)
+        if screwModel is None:
+            logging.error("Failed to load screw model: "+self.screwPath)
+            return
+
+        matrix = vtk.vtkMatrix4x4()
+        matrix.DeepCopy((1, 0, 0, self.coords[0],
+                       0, -1, 0, self.coords[1],
+                       0, 0, -1, self.coords[2],
+                       0, 0, 0, 1))
+
+        transformScrewTemp = slicer.vtkMRMLLinearTransformNode()
+        transformScrewTemp.SetName("Transform-%s" % self.currentFidLabel)
+        slicer.mrmlScene.AddNode(transformScrewTemp)
+        transformScrewTemp.ApplyTransformMatrix(matrix)
+
+        screwModel.SetName('Screw at point %s' % self.currentFidLabel)
+        screwModel.SetAndObserveTransformNodeID(transformScrewTemp.GetID())
+
+        modelDisplay = screwModel.GetDisplayNode()
+        modelDisplay.SetColor(0.12,0.73,0.91)
+        modelDisplay.SetDiffuse(0.90)
+        modelDisplay.SetAmbient(0.10)
+        modelDisplay.SetSpecular(0.20)
+        modelDisplay.SetPower(10.0)
+        modelDisplay.SetSliceIntersectionVisibility(True)
+        screwModel.SetAndObserveDisplayNodeID(modelDisplay.GetID())
+
+        screwDescrip[0] = self.currentFidLabel
+        screwDescrip[1] = self.__length
+        screwDescrip[2] = self.__diameter
+
+        self.screwList.append(screwDescrip)
+
+        self.insertScrewButton.enabled = True
+        self.backoutScrewButton.enabled = False
+        self.b.enabled = True
+        self.transformSlider1.enabled = True
+        self.transformSlider2.enabled = True
 
     def delScrew(self):
         #fidName = self.inputFiducialsNodeSelector.currentNode().GetName()
-        
-        collectionT = slicer.mrmlScene.GetNodesByName('Transform-%s' % self.currentFidLabel)
-        transformFid = collectionT.GetItemAsObject(0)
-            
-        collectionS = slicer.mrmlScene.GetNodesByName('Screw at point %s' % self.currentFidLabel)
-        screwModel = collectionS.GetItemAsObject(0)
+
+        transformFid = slicer.util.getNode('Transform-%s' % self.currentFidLabel)
+        screwModel = slicer.util.getNode('Screw at point %s' % self.currentFidLabel)
             
         if screwModel != None:
             slicer.mrmlScene.RemoveNode(transformFid)
@@ -509,21 +503,21 @@ class ScrewStep(PedicleScrewSimulatorStep):
         else:
             return
         
-    def fidMove(self, observer, event):    
-        
-        collectionS = slicer.mrmlScene.GetNodesByName('Screw at point %s' % observer.GetName())
-        screwCheck = collectionS.GetItemAsObject(0)
-        
+    def fidMove(self, observer, event):
+
+        screwCheck = slicer.util.getNode('Screw at point %s' % observer.GetName())
+
         if screwCheck != None:
           coords = [0,0,0]  
           observer.GetFiducialCoordinates(coords)
 
-          collectionT = slicer.mrmlScene.GetNodesByName('Transform-%s' % observer.GetName())
-          transformFid = collectionT.GetItemAsObject(0)
-        
-          transformFid.GetMatrixTransformToParent().SetElement(0,3,coords[0])
-          transformFid.GetMatrixTransformToParent().SetElement(1,3,coords[1])
-          transformFid.GetMatrixTransformToParent().SetElement(2,3,coords[2]) 
+          transformFid = slicer.util.getNode('Transform-%s' % observer.GetName())
+
+          matrixScrew = transformFid.GetMatrixTransformToParent()
+          matrixScrew.SetElement(0,3,coords[0])
+          matrixScrew.SetElement(1,3,coords[1])
+          matrixScrew.SetElement(2,3,coords[2])
+          transformFid.SetMatrixTransformToParent(matrixScrew)
         
           transformFid.UpdateScene(slicer.mrmlScene)
           self.sliceChange()
@@ -532,7 +526,7 @@ class ScrewStep(PedicleScrewSimulatorStep):
         
     def cameraFocus(self, position):  
       camera = slicer.mrmlScene.GetNodeByID('vtkMRMLCameraNode1')
-      
+            
       if self.approach == 'Posterior':
           
           camera.SetFocalPoint(*position)
@@ -640,10 +634,8 @@ class ScrewStep(PedicleScrewSimulatorStep):
 
 
             value = value*-1
-            collectionT = slicer.mrmlScene.GetNodesByName('Transform-%s' % self.currentFidLabel)
-            transformFid = collectionT.GetItemAsObject(0)
+            transformFid = slicer.util.getNode('Transform-%s' % self.currentFidLabel)
         
-            matrixScrew = vtk.vtkMatrix4x4()
             matrixScrew = transformFid.GetMatrixTransformToParent()
         
             newVal = value - self.driveTemp
@@ -660,6 +652,8 @@ class ScrewStep(PedicleScrewSimulatorStep):
             matrixScrew.SetElement(0,3,coord1)
             matrixScrew.SetElement(1,3,coord2)
             matrixScrew.SetElement(2,3,coord3)
+
+            transformFid.SetMatrixTransformToParent(matrixScrew)
                 
             #transformFid.UpdateScene(slicer.mrmlScene)
             #self.delayDisplay(transformFid.UpdateScene(slicer.mrmlScene), 2000)
@@ -681,10 +675,8 @@ class ScrewStep(PedicleScrewSimulatorStep):
 
 
         value = value*-1
-        collectionT = slicer.mrmlScene.GetNodesByName('Transform-%s' % self.currentFidLabel)
-        transformFid = collectionT.GetItemAsObject(0)
+        transformFid = slicer.util.getNode('Transform-%s' % self.currentFidLabel)
         
-        matrixScrew = vtk.vtkMatrix4x4()
         matrixScrew = transformFid.GetMatrixTransformToParent()
         
         newVal = value - self.driveTemp
@@ -701,7 +693,7 @@ class ScrewStep(PedicleScrewSimulatorStep):
         matrixScrew.SetElement(1,3,coord2)
         matrixScrew.SetElement(2,3,coord3)
 
-        
+        transformFid.SetMatrixTransformToParent(matrixScrew)
         
         transformFid.UpdateScene(slicer.mrmlScene)
         
@@ -723,11 +715,8 @@ class ScrewStep(PedicleScrewSimulatorStep):
         
             self.transformScrewComposite(matrix3)
 
-
-            collectionT = slicer.mrmlScene.GetNodesByName('Transform-%s' % self.currentFidLabel)
-            transformFid = collectionT.GetItemAsObject(0)
+            transformFid = slicer.util.getNode('Transform-%s' % self.currentFidLabel)
         
-            matrixScrew = vtk.vtkMatrix4x4()
             matrixScrew = transformFid.GetMatrixTransformToParent()
         
             newVal = value - self.driveTemp
@@ -744,7 +733,9 @@ class ScrewStep(PedicleScrewSimulatorStep):
             matrixScrew.SetElement(0,3,coord1)
             matrixScrew.SetElement(1,3,coord2)
             matrixScrew.SetElement(2,3,coord3)
-                
+
+            transformFid.SetMatrixTransformToParent(matrixScrew)
+
             #transformFid.UpdateScene(slicer.mrmlScene)
             #self.delayDisplay(transformFid.UpdateScene(slicer.mrmlScene), 2000)
             self.driveTemp = value
@@ -758,11 +749,9 @@ class ScrewStep(PedicleScrewSimulatorStep):
                 
         self.transformSlider1.setValue(0)
         self.transformSlider2.reset()
+
+        transformFid = slicer.util.getNode('Transform-%s' % self.currentFidLabel)
         
-        collectionT = slicer.mrmlScene.GetNodesByName('Transform-%s' % self.currentFidLabel)
-        transformFid = collectionT.GetItemAsObject(0)
-        
-        matrixScrew = vtk.vtkMatrix4x4()
         matrixScrew = transformFid.GetMatrixTransformToParent()
         
         matrixScrew.SetElement(0,0,1)
@@ -780,7 +769,9 @@ class ScrewStep(PedicleScrewSimulatorStep):
         matrixScrew.SetElement(0,3,self.coords[0])
         matrixScrew.SetElement(1,3,self.coords[1])
         matrixScrew.SetElement(2,3,self.coords[2])
-       
+
+        transformFid.SetMatrixTransformToParent(matrixScrew)
+
         transformFid.UpdateScene(slicer.mrmlScene)
 
         self.backoutScrewButton.enabled = False
@@ -792,11 +783,9 @@ class ScrewStep(PedicleScrewSimulatorStep):
         #self.transformSlider3.reset()
 
     def transformScrewComposite(self, inputMatrix):
+
+        transformFid = slicer.util.getNode('Transform-%s' % self.currentFidLabel)
         
-        collectionT = slicer.mrmlScene.GetNodesByName('Transform-%s' % self.currentFidLabel)
-        transformFid = collectionT.GetItemAsObject(0)
-        
-        matrixScrew = vtk.vtkMatrix4x4()
         matrixScrew = transformFid.GetMatrixTransformToParent()
         
         newMatrix = vtk.vtkMatrix3x3()
@@ -839,6 +828,8 @@ class ScrewStep(PedicleScrewSimulatorStep):
         matrixScrew.SetElement(3,2,0)
         matrixScrew.SetElement(3,3,1)
 
+        transformFid.SetMatrixTransformToParent(matrixScrew)
+
         transformFid.UpdateScene(slicer.mrmlScene)
 
 
@@ -850,7 +841,9 @@ class ScrewStep(PedicleScrewSimulatorStep):
       
     def onEntry(self, comingFrom, transitionType):
 
-      self.fidNode = slicer.mrmlScene.GetNodeByID('vtkMRMLMarkupsFiducialNode1')
+      self.fidNode = self.fiducialNode()
+      self.fidNodeObserver = self.fidNode.AddObserver(vtk.vtkCommand.ModifiedEvent,self.fidMove)
+
       print self.fidNode
       
       self.fidNode.SetLocked(1)
@@ -861,8 +854,8 @@ class ScrewStep(PedicleScrewSimulatorStep):
       for x in range (0,self.fidNode.GetNumberOfFiducials()):
         print x
         label = self.fidNode.GetNthFiducialLabel(x)
-        level = slicer.modules.PedicleScrewSimulator_v3Widget.landmarksStep.table2.cellWidget(x,1).currentText
-        side = slicer.modules.PedicleScrewSimulator_v3Widget.landmarksStep.table2.cellWidget(x,2).currentText
+        level = slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.cellWidget(x,1).currentText
+        side = slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.cellWidget(x,2).currentText
         self.fiduciallist.append(label + " / " + level + " / " + side)
         print self.fiduciallist
         #modelX = slicer.mrmlScene.GetNodeByID('vtkMRMLModelDisplayNode' + str(x + 4))
@@ -889,24 +882,23 @@ class ScrewStep(PedicleScrewSimulatorStep):
 
    
     def onExit(self, goingTo, transitionType):
-      
+
+      self.fidNode.RemoveObserver(self.fidNodeObserver)
+
       if goingTo.id() != 'Grade' and goingTo.id() != 'Measurements':
           return
       
       if goingTo.id() == 'Measurements':
           '''
-          fidCollection = slicer.mrmlScene.GetNodeByID('vtkMRMLAnnotationFiducialNode1')
-          fidCount = fidCollection.GetNumberOfItems()
-          for i in range(0, fidCount):
-            
-            fidName = fidCollection.GetItemAsObject(i).GetName()
-            collectionS = slicer.mrmlScene.GetNodesByName('Screw at point %s' % fidName)
-            screwModel = collectionS.GetItemAsObject(0)
+          fiducialNode = self.fiducialNode()
+          fidCount = fiducialNode.GetNumberOfFiducials()
+          for i in range(fidCount):
+            fidName = fiducialNode.GetNthFiducialLabel(i)
+            screwModel = slicer.util.getNode('Screw at point %s' % fidName)
             slicer.mrmlScene.RemoveNode(screwModel)
             
-            fid = fidCollection.GetItemAsObject(i)
-            slicer.mrmlScene.RemoveNode(fid)
-            '''
+          fiducialNode.RemoveAllMarkups()
+          '''
           slicer.modules.models.logic().SetAllModelsVisibility(0)
           
           for x in range(0,self.fidNode.GetNumberOfFiducials()):

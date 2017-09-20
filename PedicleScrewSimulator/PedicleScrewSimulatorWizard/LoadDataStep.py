@@ -9,7 +9,7 @@ class LoadDataStep(PedicleScrewSimulatorStep):
     def __init__( self, stepid ):
       self.initialize( stepid )
       self.setName( '1. Load Image Volume' )
-      self.setDescription( "Load a volume into the scene. Click 'Load DICOM' to open the DICOM browser window. Click 'Load Other Volume' to import other file types, including .nrrd" )
+      self.setDescription( "Load a volume into the scene. Click 'Load spine CT from DICOM' to open the DICOM browser window. Click 'Load spine CT from other file' to import other file types, including .nrrd" )
 
       self.__parent = super( LoadDataStep, self )
     
@@ -23,17 +23,23 @@ class LoadDataStep(PedicleScrewSimulatorStep):
 
       self.__layout = self.__parent.createUserInterface()  
 
+      #load sample data
+      self.__loadSampleCtDataButton = qt.QPushButton("Load sample spine CT")
+      self.__layout.addRow(self.__loadSampleCtDataButton)
+      self.__loadSampleCtDataButton.connect('clicked(bool)', self.loadSampleVolume)
+
+      
       #clones DICOM scriptable module
       self.__dicomWidget = slicer.modules.dicom.widgetRepresentation()
       
       #extract button that launches DICOM browser from widget
       colButtons = self.__dicomWidget.findChildren('ctkCollapsibleButton')
       dicomButton = colButtons[1].findChild('QPushButton')
-      dicomButton.setText('Load CT-DICOM Images')
+      dicomButton.setText('Load spine CT from DICOM')
       self.__layout.addRow(dicomButton)
       
       #open load data dialog for adding nrrd files
-      self.__loadScrewButton = qt.QPushButton("Load Other Volume Format")
+      self.__loadScrewButton = qt.QPushButton("Load spine CT from other file")
       self.__layout.addRow(self.__loadScrewButton)
       self.__loadScrewButton.connect('clicked(bool)', self.loadVolume)
 
@@ -59,11 +65,18 @@ class LoadDataStep(PedicleScrewSimulatorStep):
 
       cam = slicer.mrmlScene.GetNodeByID('vtkMRMLCameraNode1')
       cam.SetAndObserveTransformNodeID('vtkMRMLLinearTransformNode4')
-               
+
+      
     def loadVolume(self):
 
         slicer.util.openAddDataDialog()
     
+    
+    def loadSampleVolume(self):
+      import SampleData
+      sampleDataLogic = SampleData.SampleDataLogic()
+      sampleDataLogic.downloadCTChest()
+
     
     #called when entering step
     def onEntry(self, comingFrom, transitionType):
