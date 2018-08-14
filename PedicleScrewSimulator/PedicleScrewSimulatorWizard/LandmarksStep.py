@@ -207,7 +207,7 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
       self.table2 = qt.QTableWidget()
       self.table2.setRowCount(1)
       self.table2.setColumnCount(3)
-      self.table2.horizontalHeader().setResizeMode(qt.QHeaderView.Stretch)
+      self.table2.horizontalHeader().setSectionResizeMode(qt.QHeaderView.Stretch)
       self.table2.setSizePolicy (qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
       self.table2.setMinimumWidth(400)
       self.table2.setMinimumHeight(215)

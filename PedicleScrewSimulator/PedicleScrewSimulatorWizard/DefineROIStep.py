@@ -295,7 +295,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
       else:
         self.__vrDisplayNode = slicer.mrmlScene.GetNodeByID(vrNodeID)
 
-    viewNode = slicer.util.getNode('vtkMRMLViewNode1')
+    viewNode = slicer.mrmlScene.GetNodeByID('vtkMRMLViewNode1')
     self.__vrDisplayNode.AddViewNodeID(viewNode.GetID())
     
     slicer.modules.volumerendering.logic().CopyDisplayToVolumeRenderingDisplayNode(self.__vrDisplayNode)
@@ -334,7 +334,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     
     #read scalar volume node ID from previous step
     pNode = self.parameterNode()
-    baselineVolume = Helper.getNodeByID(pNode.GetParameter('baselineVolumeID'))
+    baselineVolume = slicer.mrmlScene.GetNodeByID(pNode.GetParameter('baselineVolumeID'))
     self.__baselineVolume = baselineVolume
     
     #if ROI was created previously, get its transformation matrix and update current ROI
@@ -342,7 +342,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     roiTransformNode = None
     
     if roiTransformID != '':
-      roiTransformNode = Helper.getNodeByID(roiTransformID)
+      roiTransformNode = slicer.mrmlScene.GetNodeByID(roiTransformID)
     else:
       roiTransformNode = slicer.vtkMRMLLinearTransformNode()
       slicer.mrmlScene.AddNode(roiTransformNode)
@@ -356,7 +356,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     dm.SetElement(0,0,abs(dm.GetElement(0,0)))
     dm.SetElement(1,1,abs(dm.GetElement(1,1)))
     dm.SetElement(2,2,abs(dm.GetElement(2,2)))
-    roiTransformNode.SetAndObserveMatrixTransformToParent(dm)
+    roiTransformNode.SetMatrixTransformToParent(dm)
     
     
     Helper.SetBgFgVolumes(pNode.GetParameter('baselineVolumeID'))
@@ -366,7 +366,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     # volume
     roiTfmNodeID = pNode.GetParameter('roiTransformID')
     if roiTfmNodeID != '':
-      self.__roiTransformNode = Helper.getNodeByID(roiTfmNodeID)
+      self.__roiTransformNode = slicer.mrmlScene.GetNodeByID(roiTfmNodeID)
     else:
       Helper.Error('Internal error! Error code CT-S2-NRT, please report!')
 
@@ -398,7 +398,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     if roi == None:
       self.__parent.validationFailed(desiredBranchId, 'Error', 'Please define ROI!')
 
-    volCheck = slicer.util.getNodesByClass('vtkMRMLScalarVolumeNode')[0]
+    volCheck = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLScalarVolumeNode')
     if volCheck != None:
       self.__parent.validationSucceeded('pass')
     else:
@@ -457,7 +457,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
 
     if roiNodeID != '':
       self.__roi = slicer.mrmlScene.GetNodeByID(roiNodeID)
-      self.__roiSelector.setCurrentNode(Helper.getNodeByID(self.__roi.GetID()))
+      self.__roiSelector.setCurrentNode(slicer.mrmlScene.GetNodeByID(self.__roi.GetID()))
     else:
       roi = slicer.vtkMRMLAnnotationROINode()
       roi.Initialize(slicer.mrmlScene)

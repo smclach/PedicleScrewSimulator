@@ -36,7 +36,7 @@ class GradeStep(PedicleScrewSimulatorStep):
       
       self.__layout = self.__parent.createUserInterface()  
       
-      ln = slicer.util.getNode(pattern='vtkMRMLLayoutNode*')
+      ln = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLLayoutNode')
       ln.SetViewArrangement(24)
       
       modLabel = qt.QLabel('Select Screw at Point:')
@@ -69,7 +69,7 @@ class GradeStep(PedicleScrewSimulatorStep):
       self.screwTable.sortingEnabled = False
       self.screwTable.setEditTriggers(1)
       self.screwTable.setMinimumHeight(self.screwTable.verticalHeader().length())
-      self.screwTable.horizontalHeader().setResizeMode(qt.QHeaderView.Stretch)
+      self.screwTable.horizontalHeader().setSectionResizeMode(qt.QHeaderView.Stretch)
       self.screwTable.setSizePolicy (qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
       self.screwTable.itemSelectionChanged.connect(self.onTableCellClicked)
       self.__layout.addWidget(self.screwTable)
@@ -115,13 +115,10 @@ class GradeStep(PedicleScrewSimulatorStep):
       self.screwNumber = len(self.screwList)
       self.screwTable.setRowCount(self.screwNumber)
 
-      for i in range(0,self.fidNumber):
+      for i in range(self.screwNumber):
           currentScrew = self.screwList[i]
           screwLoc = str(currentScrew[0])
           screwLen = str(currentScrew[1]) + " x " + str(currentScrew[2])
-          
-          
-          
                     
           qtscrewLoc = qt.QTableWidgetItem(screwLoc)
           qtscrewLen = qt.QTableWidgetItem(screwLen)
@@ -147,7 +144,7 @@ class GradeStep(PedicleScrewSimulatorStep):
 
       super(GradeStep, self).onEntry(comingFrom, transitionType)
       
-      ln = slicer.util.getNode(pattern='vtkMRMLLayoutNode*')
+      ln = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLLayoutNode')
       ln.SetViewArrangement(24)
       
       pNode = self.parameterNode()
@@ -216,13 +213,13 @@ class GradeStep(PedicleScrewSimulatorStep):
         
         pNode = self.parameterNode()
         
-        self.__inputScalarVol = Helper.getNodeByID(pNode.GetParameter('croppedBaselineVolumeID'))
+        self.__inputScalarVol = slicer.mrmlScene.GetNodeByID(pNode.GetParameter('croppedBaselineVolumeID'))
         for x in range(0, len(self.fiduciallist)):
             fidName = self.fiduciallist[x]
             print(fidName)
-            transformFid = slicer.util.getNode('Transform-%s' % fidName)
+            transformFid = slicer.mrmlScene.GetFirstNodeByName('Transform-%s' % fidName)
             
-            screwModel = slicer.util.getNode('Screw at point %s' % fidName)
+            screwModel = slicer.mrmlScene.GetFirstNodeByName('Screw at point %s' % fidName)
             screwIndex = x
             
             if screwModel != None:
@@ -450,7 +447,7 @@ class GradeStep(PedicleScrewSimulatorStep):
         
     def chartContact(self, screwCount):
         # Get the Chart View Node
-        cvn = slicer.util.getNodesByClass('vtkMRMLChartViewNode')[0]
+        cvn = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLChartViewNode')
         cn = slicer.mrmlScene.AddNode(slicer.vtkMRMLChartNode())
         
         arrayNodes = []
@@ -517,23 +514,23 @@ class GradeStep(PedicleScrewSimulatorStep):
         for i in range(fidCount):
           fiducial.SetNthFiducialVisibility(i, False)
           fidName = fiducial.GetNthFiducialLabel(i)
-          screwModel = slicer.util.getNode('Screw at point %s' % fidName)
+          screwModel = slicer.mrmlScene.GetFirstNodeByName('Screw at point %s' % fidName)
           if screwModel != None:
               modelDisplay = screwModel.GetDisplayNode()
               modelDisplay.SetColor(0.12,0.73,0.91)
               modelDisplay.VisibilityOn()
             
-          gradeModel = slicer.util.getNode('Grade model-%s' % fidName)
+          gradeModel = slicer.mrmlScene.GetFirstNodeByName('Grade model-%s' % fidName)
           if gradeModel != None:
               slicer.mrmlScene.RemoveNode(gradeModel)
           
-          headModel = slicer.util.getNode('Head %s' % fidName)
+          headModel = slicer.mrmlScene.GetFirstNodeByName('Head %s' % fidName)
           if headModel != None:
               slicer.mrmlScene.RemoveNode(headModel)
 
     def vrUpdate(self, opacity):
       pNode = self.parameterNode()
-      vrDisplayNode = Helper.getNodeByID(pNode.GetParameter('vrDisplayNodeID'))
+      vrDisplayNode = slicer.mrmlScene.GetNodeByID(pNode.GetParameter('vrDisplayNodeID'))
       vrOpacityMap = vrDisplayNode.GetVolumePropertyNode().GetVolumeProperty().GetScalarOpacity()
       vrOpacityMap.RemoveAllPoints()
       vrOpacityMap.AddPoint(0,0)

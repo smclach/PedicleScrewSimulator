@@ -335,7 +335,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       self.angleTable.sortingEnabled = False
       self.angleTable.setEditTriggers(1)
       self.angleTable.setMinimumHeight(self.angleTable.verticalHeader().length())
-      self.angleTable.horizontalHeader().setResizeMode(qt.QHeaderView.Stretch)
+      self.angleTable.horizontalHeader().setSectionResizeMode(qt.QHeaderView.Stretch)
       self.angleTable.setSizePolicy (qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
       self.angleTable.itemSelectionChanged.connect(self.onTableCellClicked)
       self.__layout.addWidget(self.angleTable)
