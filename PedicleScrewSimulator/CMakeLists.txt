@@ -33,7 +33,7 @@ set(MODULE_PYTHON_RESOURCES
   Resources/ScrewModels/scaled_700x40.vtk
   Resources/ScrewModels/scaled_700x45.vtk
   Resources/ScrewModels/scaled_700x50.vtk
-  Resources/ScrewModels/screw head.vtk
+  "Resources/ScrewModels/screw head.vtk"
   )
 
 #-----------------------------------------------------------------------------
