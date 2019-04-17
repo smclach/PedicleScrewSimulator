@@ -1,7 +1,7 @@
 from __main__ import qt, ctk, slicer
 
-from PedicleScrewSimulatorStep import *
-from Helper import *
+from .PedicleScrewSimulatorStep import *
+from .Helper import *
 import PythonQt
 
 class DefineROIStep( PedicleScrewSimulatorStep ) :
@@ -195,7 +195,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     
     #get center coordinate
     self.__roi.GetXYZ(roiCenter)
-    print roiCenter
+    logging.debug(roiCenter)
     
     #change slices to center of ROI
     lm = slicer.app.layoutManager()

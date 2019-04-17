@@ -1,7 +1,7 @@
 from __main__ import qt, ctk, vtk, slicer
 
-from PedicleScrewSimulatorStep import *
-from Helper import *
+from .PedicleScrewSimulatorStep import *
+from .Helper import *
 
 class EndStep(PedicleScrewSimulatorStep):
     
@@ -49,4 +49,4 @@ class EndStep(PedicleScrewSimulatorStep):
       super(EndStep, self).onExit(goingTo, transitionType)
       
     def doStepProcessing(self):
-        print('Done')
+        logging.debug('Done')

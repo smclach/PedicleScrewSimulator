@@ -1,7 +1,7 @@
 from __main__ import qt, ctk, vtk, slicer
 
-from PedicleScrewSimulatorStep import *
-from Helper import *
+from .PedicleScrewSimulatorStep import *
+from .Helper import *
 import PythonQt
 import string
 
@@ -45,7 +45,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
         self.rulerList.append("%.2f" % ruler.GetDistanceMeasurement())
     '''    
     def updateTable(self):
-      #print pNode.GetParameter('vertebrae')
+      #logging.debug(pNode.GetParameter('vertebrae'))
       self.fiducial = self.fiducialNode()
       self.fidNumber = self.fiducial.GetNumberOfFiducials()
       self.fidLabels = []
@@ -69,17 +69,12 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
           Label = str(self.fidLabels[i])
           Level = str(self.fidLevels[i])
           Side = str(self.fidSides[i])
-          #print Label
-          #print Level
-          #print Side
-          #print self.levelselection[i] + "loop"
           qtLabel = qt.QTableWidgetItem(Label)
           qtLevel = qt.QTableWidgetItem(Level)
           qtSide = qt.QTableWidgetItem(Side)
           self.itemsLabels.append(qtLabel)
           self.itemsLevels.append(qtLevel)
           self.itemsSides.append(qtSide)
-          #print self.items
           self.angleTable.setItem(i, 0, qtLabel)
           self.angleTable.setItem(i, 1, qtLevel)
           self.angleTable.setItem(i, 2, qtSide)
@@ -101,7 +96,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
 
     def onTableCellClicked(self):
       if self.angleTable.currentColumn() == 0:
-          print self.angleTable.currentRow()
+          logging.debug(self.angleTable.currentRow())
           self.currentFid = self.angleTable.currentRow()
           self.zoomIn()
           self.sliceChange()
@@ -114,15 +109,13 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       self.sliceChange()
       
     def rulerAdded(self, observer, event):
-      print "ruler added"
-      print self.entryCount
+      logging.debug("ruler added: {0}".format(self.entryCount))
       rulers = slicer.util.getNodesByClass('vtkMRMLAnnotationRulerNode')
       
       rulerX = rulers[-1] # last ruler
       self.rulerList.append("%.2f" % rulerX.GetDistanceMeasurement())
       
       for i in range(self.fidNumber):
-        print i
         #self.measuresLength = qt.QComboBox()
         #self.measuresWidth = qt.QComboBox()
         self.lengthCombo[i].addItem("%.2f" % rulerX.GetDistanceMeasurement())
@@ -135,7 +128,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       rulers = slicer.util.getNodesByClass('vtkMRMLAnnotationRulerNode')
       for [i, rulerX] in enumerate(rulers):
         if rulerX[i].GetDistanceMeasurement() == self.rulerList[i].GetDistanceMeasurement():
-          print "okay"
+          logging.debug("okay")
         else:
           self.lengthCombo[i].removeItem(i)
           self.widthCombo[i].removeItem(i)
@@ -146,7 +139,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       #self.rulerList.append("%.2f" % rulerX.GetDistanceMeasurement())
     
     def sliceChange(self):
-        print "changing"
+        logging.debug("changing")
         coords = [0,0,0]
         if self.fiducial != None:
           self.fiducial.GetNthFiducialPosition(self.currentFid,coords)
@@ -168,7 +161,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
             return
     
     def zoomIn(self):
-      print "zoom"
+      logging.debug("zoom")
       slicer.app.applicationLogic().PropagateVolumeSelection(1)
       
     def makeFidAdjustments(self):
@@ -238,9 +231,6 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
         self.startMeasurements.setText("Start Measuring")  
        
     def createUserInterface( self ):
-      '''
-      '''
-      print "1"
       anno = slicer.modules.annotations.logic()
       anno.AddHierarchy()
       
@@ -311,9 +301,9 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
           #self.fiducial.GetNthFiducialPosition(i,position)
           #self.fidPositions.append(position)
       '''    
-      print self.fidLabels
-      print self.fidLevels 
-      print self.fidSides 
+      logging.debug(self.fidLabels)
+      logging.debug(self.fidLevels)
+      logging.debug(self.fidSides)
       #self.levels = ("C1","C2","C3","C4","C5","C6","C7","T1","T2","T3","T4","T5","T6","T7","T8","T9","T10","T11","T12","L1", "L2", "L3", "L4", "L5","S1")
 
       #pNode = self.parameterNode()
@@ -321,15 +311,15 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       horizontalHeaders = ["Fiducial","Level","Side","Pedicle\n Length", "Pedicle\n Width"]
       #self.vertebra = str(pNode.GetParameter('vertebra'))
       #self.inst_length = str(pNode.GetParameter('inst_length'))
-      #print self.vertebra
-      #print self.inst_length
+      #logging.debug(self.vertebra)
+      #logging.debug(self.inst_length)
 
       #self.levelselection = []
 
       #for i in range(self.levels.index(self.vertebra),self.levels.index(self.vertebra)+int(self.inst_length)):
-      #  print self.levels[i]
+      #  logging.debug(self.levels[i])
       #  self.levelselection.append(self.levels[i])
-      #print self.levelselection
+      #logging.debug(self.levelselection)
 
       self.angleTable = qt.QTableWidget(self.fidNumber, 5)
       self.angleTable.sortingEnabled = False
@@ -344,13 +334,13 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       self.items = []
       '''  
       for i in range(0,self.fidNumber):
-          #print self.levelselection[i] + "loop"
+          #logging.debug(self.levelselection[i] + "loop")
           Label = qt.QTableWidgetItem(str(self.fidLabels[i]))
-          print Label
+          logging.debug(Label)
           Level = qt.QTableWidgetItem(str(self.fidLevels[i]))
-          print Level
+          logging.debug(Level)
           Side = qt.QTableWidgetItem(str(self.fidSides[i]))
-          print Side
+          logging.debug(Side)
           #self.items.append(Label)
           self.angleTable.setItem(i, 0, Label)
           self.angleTable.setItem(i, 1, Level)
@@ -416,13 +406,13 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       self.updateTable()
     
     def sliderValueChanged(self, value):
-      print value
-      print self.oldPosition
+      logging.debug(value)
+      logging.debug(self.oldPosition)
 
       transform = vtk.vtkTransform()
             
       if self.selector.currentNodeID == 'vtkMRMLSliceNodeRed':
-        print "red"
+        logging.debug("red")
         redSlice = slicer.mrmlScene.GetNodeByID('vtkMRMLSliceNodeRed')
         transform.SetMatrix(redSlice.GetSliceToRAS())
         transform.RotateX(value - self.oldPosition)
@@ -430,7 +420,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
         redSlice.UpdateMatrices()
         
       elif self.selector.currentNodeID == 'vtkMRMLSliceNodeYellow':
-        print "yellow"
+        logging.debug("yellow")
         redSlice = slicer.mrmlScene.GetNodeByID('vtkMRMLSliceNodeYellow')
         transform.SetMatrix(redSlice.GetSliceToRAS())
         transform.RotateY(value - self.oldPosition)
@@ -438,7 +428,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
         redSlice.UpdateMatrices()
       
       elif self.selector.currentNodeID == 'vtkMRMLSliceNodeGreen':
-        print "green"
+        logging.debug("green")
         redSlice = slicer.mrmlScene.GetNodeByID('vtkMRMLSliceNodeGreen')
         transform.SetMatrix(redSlice.GetSliceToRAS())
         transform.RotateZ(value - self.oldPosition)
@@ -462,7 +452,6 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
 
       super(MeasurementsStep, self).onEntry(comingFrom, transitionType)
                       
-      print "2"
       qt.QTimer.singleShot(0, self.killButton)
       
       lm = slicer.app.layoutManager()
@@ -470,7 +459,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
         return 
       lm.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutSideBySideView)
 
-      print "entering measurements"
+      logging.debug("entering measurements")
       self.zoomIn()
                   
       # Enable Slice Intersections
@@ -489,7 +478,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
                               
     def onExit(self, goingTo, transitionType):
       super(MeasurementsStep, self).onExit(goingTo, transitionType)
-      print "exiting"  
+      logging.debug("exiting")
       # Disable Slice Intersections
       viewNodes = slicer.util.getNodesByClass('vtkMRMLSliceCompositeNode')
       for viewNode in viewNodes:
@@ -500,7 +489,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
         rulerX.SetDisplayVisibility(0)
 
       if goingTo.id() == 'Screw':
-        print "screw"
+        logging.debug("screw")
         self.doStepProcessing()  
     
       self.stop()
@@ -509,11 +498,9 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
         
       # extra error checking, in case the user manages to click ReportROI button
       if goingTo.id() != 'Landmarks' and goingTo.id() != 'Screw':
-        print "here 1"
         return
                    
       
       
     def doStepProcessing(self):
-      print('Done')                       
-      
+      logging.debug('Done')

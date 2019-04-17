@@ -1,7 +1,7 @@
 from __main__ import qt, ctk, vtk, slicer
 
-from PedicleScrewSimulatorStep import *
-from Helper import *
+from .PedicleScrewSimulatorStep import *
+from .Helper import *
 import DICOM
 
 class LoadDataStep(PedicleScrewSimulatorStep):
@@ -142,7 +142,7 @@ class LoadDataStep(PedicleScrewSimulatorStep):
         #offsets volume so its center is registered to world origin
         newCoords = [0,0,0,0,0,0]
         self.__baseline.GetRASBounds(newCoords)
-        print newCoords
+        logging.debug(newCoords)
         shift = [0,0,0]
         shift[0] = 0.5*(newCoords[1] - newCoords[0])
         shift[1] = 0.5*(newCoords[3] - newCoords[2])
@@ -165,6 +165,4 @@ class LoadDataStep(PedicleScrewSimulatorStep):
         slicer.mrmlScene.RemoveNode(transformVol)
         slicer.mrmlScene.RemoveNode(transformVol2)
         
-        print('Done')
-        
-      
+        logging.debug('Done')

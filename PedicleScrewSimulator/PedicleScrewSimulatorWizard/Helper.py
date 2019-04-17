@@ -2,6 +2,7 @@
 from __main__ import vtk, slicer
 
 # python includes
+import logging
 import sys
 import time
 
@@ -16,7 +17,7 @@ class Helper( object ):
     
     '''
 
-    #print "[PedicleScrewSimulatorPy " + time.strftime( "%m/%d/%Y %H:%M:%S" ) + "]: " + str( message )
+    #logging.debug("[PedicleScrewSimulatorPy " + time.strftime( "%m/%d/%Y %H:%M:%S" ) + "]: " + str( message ))
     #sys.stdout.flush()
 
   @staticmethod
@@ -25,7 +26,7 @@ class Helper( object ):
     
     '''
 
-    #print "[PedicleScrewSimulatorPy " + time.strftime( "%m/%d/%Y %H:%M:%S" ) + "]: WARNING: " + str( message )
+    #logging.debug("[PedicleScrewSimulatorPy " + time.strftime( "%m/%d/%Y %H:%M:%S" ) + "]: WARNING: " + str( message ))
     #sys.stdout.flush()
 
   @staticmethod
@@ -34,7 +35,7 @@ class Helper( object ):
     
     '''
 
-    print "[PedicleScrewSimulatorPy " + time.strftime( "%m/%d/%Y %H:%M:%S" ) + "]: ERROR: " + str( message )
+    logging.debug("[PedicleScrewSimulatorPy " + time.strftime( "%m/%d/%Y %H:%M:%S" ) + "]: ERROR: " + str( message ))
     sys.stdout.flush()
 
   @staticmethod
@@ -54,7 +55,7 @@ class Helper( object ):
     showDebugOutput = 0
     from time import strftime
     if showDebugOutput:
-        print "[PedicleScrewSimulatorPy " + time.strftime( "%m/%d/%Y %H:%M:%S" ) + "] DEBUG: " + str( message )
+        logging.debug("[PedicleScrewSimulatorPy " + time.strftime( "%m/%d/%Y %H:%M:%S" ) + "] DEBUG: " + str( message ))
         sys.stdout.flush()
 
   @staticmethod
@@ -103,14 +104,14 @@ class Helper( object ):
   def InitVRDisplayNode(vrDisplayNode, volumeID, roiID):
     vrLogic = slicer.modules.volumerendering.logic()
 
-    print('PedicleScrewSimulator VR: will observe ID '+volumeID)
+    logging.debug('PedicleScrewSimulator VR: will observe ID '+volumeID)
     propNode = vrDisplayNode.GetVolumePropertyNode()
 
     if propNode == None:
       propNode = slicer.vtkMRMLVolumePropertyNode()
       slicer.mrmlScene.AddNode(propNode)
     else:
-      print('Property node: '+propNode.GetID())
+      logging.debug('Property node: '+propNode.GetID())
 
     vrDisplayNode.SetAndObserveVolumePropertyNodeID(propNode.GetID())
 

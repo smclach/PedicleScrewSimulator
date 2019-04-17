@@ -1,7 +1,7 @@
 from __main__ import qt, ctk, vtk, slicer
 
-from PedicleScrewSimulatorStep import *
-from Helper import *
+from .PedicleScrewSimulatorStep import *
+from .Helper import *
 import math
 
 class GradeStep(PedicleScrewSimulatorStep):
@@ -37,7 +37,7 @@ class GradeStep(PedicleScrewSimulatorStep):
       self.__layout = self.__parent.createUserInterface()  
       
       ln = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLLayoutNode')
-      ln.SetViewArrangement(24)
+      ln.SetViewArrangement(slicer.vtkMRMLLayoutNode.SlicerLayoutConventionalPlotView)
       
       modLabel = qt.QLabel('Select Screw at Point:')
       '''
@@ -84,12 +84,12 @@ class GradeStep(PedicleScrewSimulatorStep):
       self.updateTable()
     
     #def transformSlider3ValueChanged(self, value):
-    #    #print(value)
+    #    #logging.debug(value)
     #    self.vrUpdate(value)
                 
     def onTableCellClicked(self):
       if self.screwTable.currentColumn() == 0:
-          print self.screwTable.currentRow()
+          logging.debug(self.screwTable.currentRow())
           self.currentFid = self.screwTable.currentRow()
           position = [0,0,0]
           self.fiducial = self.fiducialNode()
@@ -145,19 +145,18 @@ class GradeStep(PedicleScrewSimulatorStep):
       super(GradeStep, self).onEntry(comingFrom, transitionType)
       
       ln = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLLayoutNode')
-      ln.SetViewArrangement(24)
+      ln.SetViewArrangement(slicer.vtkMRMLLayoutNode.SlicerLayoutConventionalPlotView)
       
       pNode = self.parameterNode()
           
       self.fidNode = self.fiducialNode()
       for x in range (0,self.fidNode.GetNumberOfFiducials()):
-        print x
         label = self.fidNode.GetNthFiducialLabel(x)
         level = slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.cellWidget(x,1).currentText
         side = slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.cellWidget(x,2).currentText
         self.fiduciallist.append(label + " / " + level + " / " + side)
-        print self.fiduciallist    
-      
+
+      logging.debug(self.fiduciallist)      
       
       self.vrUpdate(0.03)
       
@@ -184,7 +183,7 @@ class GradeStep(PedicleScrewSimulatorStep):
         
         
     def doStepProcessing(self):
-        print('Done')
+        logging.debug('Done')
 
     def sliceChange(self):
         coords = [0,0,0]
@@ -205,7 +204,7 @@ class GradeStep(PedicleScrewSimulatorStep):
         redController.setSliceOffsetValue(coords[2])
     
     def gradeScrews(self):
-        #print self.fiduciallist[0]
+        #logging.debug(self.fiduciallist[0])
         #self.fid = self.__modelSelector.currentNode()
         #self.sliceChange()
         
@@ -216,7 +215,7 @@ class GradeStep(PedicleScrewSimulatorStep):
         self.__inputScalarVol = slicer.mrmlScene.GetNodeByID(pNode.GetParameter('croppedBaselineVolumeID'))
         for x in range(0, len(self.fiduciallist)):
             fidName = self.fiduciallist[x]
-            print(fidName)
+            logging.debug(fidName)
             transformFid = slicer.mrmlScene.GetFirstNodeByName('Transform-%s' % fidName)
             
             screwModel = slicer.mrmlScene.GetFirstNodeByName('Screw at point %s' % fidName)
@@ -225,10 +224,10 @@ class GradeStep(PedicleScrewSimulatorStep):
             if screwModel != None:
                 self.gradeScrew(screwModel, transformFid, fidName, screwIndex)
                 self.screwCount += 1
-                print "yes"
+                logging.debug("yes")
             else:
                 #self.clearGrade()
-                print "no"
+                logging.debug("no")
                 return
         self.chartContact(self.screwCount)
         
@@ -236,7 +235,7 @@ class GradeStep(PedicleScrewSimulatorStep):
     def cropScrew(self,input, area):
         #Get bounds of screw 
         bounds = input.GetPolyData().GetBounds()
-        print bounds
+        logging.debug(bounds)
         
         #Define bounds for cropping out the head or shaft of the screw respectively
         if area == 'head':
@@ -360,7 +359,7 @@ class GradeStep(PedicleScrewSimulatorStep):
         bounds = self.pointsArray.GetPoints().GetBounds()
         lowerBound = bounds[2] #+ 17
         shaftBounds = 30 # FOR NOW
-        print bounds
+        logging.debug(bounds)
         xCenter = (bounds[0] + bounds[1])/2
         zCenter = (bounds[4] + bounds[5])/2
         
@@ -374,9 +373,9 @@ class GradeStep(PedicleScrewSimulatorStep):
             totalCount += 1
             #Read scalar value at point to "point" array
             scalarsArray.GetTypedTuple(i, point)
-            #print point
+            #logging.debug(point)
             self.pointsArray.GetPoints().GetPoint(i,point2)
-            #print point2
+            #logging.debug(point2)
 
             longitudinalIndex = int(math.floor((point2[1]-lowerBound)/shaftBounds * 10.0))
             if longitudinalIndex<0 or longitudinalIndex>=10:
@@ -396,7 +395,7 @@ class GradeStep(PedicleScrewSimulatorStep):
             countQ[quadrantIndex][longitudinalIndex] += point[0]
             pointsQ[quadrantIndex][longitudinalIndex] += 1
 
-            #print totalCount
+            #logging.debug(totalCount)
             #Keep track of number of points that fall into cortical threshold and cancellous threshold respectively
             if point[0] >= self.__corticalMin:
               corticalCount += 1
@@ -438,7 +437,7 @@ class GradeStep(PedicleScrewSimulatorStep):
         self.itemsqtcaP.append(qtcap)
         self.itemsqtotP.append(qtotP)
         
-        print screwIndex    
+        logging.debug(screwIndex)
         self.screwTable.setItem(screwIndex, 4, qtcoP)
         self.screwTable.setItem(screwIndex, 3, qtcap)
         self.screwTable.setItem(screwIndex, 2, qtotP)
@@ -446,62 +445,81 @@ class GradeStep(PedicleScrewSimulatorStep):
         
         
     def chartContact(self, screwCount):
-        # Get the Chart View Node
-        cvn = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLChartViewNode')
-        cn = slicer.mrmlScene.AddNode(slicer.vtkMRMLChartNode())
-        
-        arrayNodes = []
-        for i in range(0,screwCount):
-            # Create an Array Node and add some data
-            dn = slicer.mrmlScene.AddNode(slicer.vtkMRMLDoubleArrayNode())
-            arrayNodes.insert(i,dn)
-            a = dn.GetArray()
-            a.SetNumberOfTuples(10)
-            x = range(0, 10)
-            screwValues = self.screwContact[i]
-            for j in range(len(x)):
-                a.SetComponent(j, 0, (j * 10) + 5)
-                a.SetComponent(j, 1, screwValues[j])
-                a.SetComponent(j, 2, 0)
-                print j
-                print screwValues[j]
-            cn.AddArray('Screw %s' % i, dn.GetID())
-        
-        dnCort = slicer.mrmlScene.AddNode(slicer.vtkMRMLDoubleArrayNode())
-        dnCanc = slicer.mrmlScene.AddNode(slicer.vtkMRMLDoubleArrayNode())
-        
-        a1 = dnCort.GetArray()
-        a2 = dnCanc.GetArray()
-        a1.SetNumberOfTuples(2)
-        a2.SetNumberOfTuples(2)
-        a1.SetComponent(0, 0, 0)
-        a1.SetComponent(0, 1, 250)
-        a1.SetComponent(0, 2, 0)
-        a1.SetComponent(1, 0, 100)
-        a1.SetComponent(1, 1, 250)
-        a1.SetComponent(1, 2, 0)
-        a2.SetComponent(0, 0, 0)
-        a2.SetComponent(0, 1, 130)
-        a2.SetComponent(0, 2, 0)
-        a2.SetComponent(1, 0, 100)
-        a2.SetComponent(1, 1, 130)
-        a2.SetComponent(1, 2, 0)
-        
-        cn.AddArray('Cortical Bone', dnCort.GetID())
-        cn.AddArray('Cancellous Bone', dnCanc.GetID())
 
-        #cn.SetProperty('default', 'title', 'Information for Screw at point %s' % fidName)
-        cn.SetProperty('default', 'title', 'Screw - Bone Contact')
-        cn.SetProperty('default', 'xAxisLabel', 'Screw Percentile (Head - Tip)')
-        #cn.SetProperty('default', 'xAxisType', 'categorical')
-        cn.SetProperty('default', 'yAxisLabel', 'Average HU Contact')
-        cn.SetProperty('default', 'showLegend', 'on')
-        cn.SetProperty('default', 'type', 'Line')
-        cn.SetProperty('default', 'xAxisPad', '0')
-        #cn.SetProperty('default', 'xAxisPad', '0')
-               
-        cvn.SetChartNodeID(cn.GetID())
-           
+        # Show this chart in the plot view
+        plotWidget = slicer.app.layoutManager().plotWidget(0)
+        plotViewNode = plotWidget.mrmlPlotViewNode()
+
+        # Retrieve/Create plot chart
+        plotChartNode = plotViewNode.GetPlotChartNode()
+        if not plotChartNode:
+            plotChartNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLPlotChartNode", "Screw - Bone Contact chart")
+            plotViewNode.SetPlotChartNodeID(plotChartNode.GetID())
+        plotChartNode.SetTitle("Screw - Bone Contact")
+        plotChartNode.SetXAxisTitle('Screw Percentile (Head - Tip)')
+        plotChartNode.SetYAxisTitle('Average HU Contact')
+
+        # Retrieve/Create plot table
+        firstPlotSeries = plotChartNode.GetNthPlotSeriesNode(0)
+        plotTableNode = firstPlotSeries.GetTableNode() if firstPlotSeries else None
+        if not plotTableNode:
+            plotTableNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode", "Screw - Bone Contact table")
+
+        # Set x, cortical bone, and cancellous bone columns
+        plotTableNode.RemoveAllColumns()
+        arrX = vtk.vtkFloatArray()
+        arrX.SetName("Screw Percentile")
+        plotTableNode.AddColumn(arrX)
+        arrCortical = vtk.vtkFloatArray()
+        arrCortical.SetName("Cortical Bone")
+        plotTableNode.AddColumn(arrCortical)
+        arrCancellous = vtk.vtkFloatArray()
+        arrCancellous.SetName("Cancellous Bone")
+        plotTableNode.AddColumn(arrCancellous)
+        numPoints = 10
+        plotTable = plotTableNode.GetTable()
+        plotTable.SetNumberOfRows(numPoints)
+        for i in range(numPoints):
+            plotTable.SetValue(i, 0, i * 10)
+            plotTable.SetValue(i, 1, 250)
+            plotTable.SetValue(i, 2, 130)
+
+        arrays = [arrCortical, arrCancellous]
+
+        for i in range(screwCount):
+            # Create an Array Node and add some data
+            arrScrew = vtk.vtkFloatArray()
+            arrScrew.SetName('Screw %s' % i)
+            arrScrew.SetNumberOfValues(numPoints)
+            screwValues = self.screwContact[i]
+            for j in range(numPoints):
+                arrScrew.SetValue(j, screwValues[j])
+            plotTableNode.AddColumn(arrScrew)
+            arrays.append(arrScrew)
+
+        # Update/Create plot series
+        for arrIndex, arr in enumerate(arrays):
+            plotSeriesNode = plotChartNode.GetNthPlotSeriesNode(arrIndex)
+            if not plotSeriesNode:
+                plotSeriesNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLPlotSeriesNode")
+                plotChartNode.AddAndObservePlotSeriesNodeID(plotSeriesNode.GetID())
+            plotSeriesNode.SetName("{0}".format(arr.GetName()))
+            plotSeriesNode.SetAndObserveTableNodeID(plotTableNode.GetID())
+            plotSeriesNode.SetXColumnName(arrX.GetName())
+            plotSeriesNode.SetYColumnName(arr.GetName())
+            plotSeriesNode.SetPlotType(slicer.vtkMRMLPlotSeriesNode.PlotTypeScatter)
+            if arrIndex < 2:
+                # two constant lines
+                plotSeriesNode.SetLineStyle(slicer.vtkMRMLPlotSeriesNode.LineStyleDash)
+            else:
+                plotSeriesNode.SetLineStyle(slicer.vtkMRMLPlotSeriesNode.LineStyleSolid)
+            plotSeriesNode.SetMarkerStyle(slicer.vtkMRMLPlotSeriesNode.MarkerStyleNone)
+            plotSeriesNode.SetUniqueColor()
+
+        # Remove extra series nodes
+        for i in range(plotChartNode.GetNumberOfPlotSeriesNodes() - len(arrays)):
+            plotChartNode.RemoveNthPlotSeriesNodeID(plotChartNode.GetNumberOfPlotSeriesNodes() - 1)
+
     def clearGrade(self):
         #Clear chart
         if self.cvn:

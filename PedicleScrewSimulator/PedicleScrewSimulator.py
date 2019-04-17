@@ -91,12 +91,12 @@ class PedicleScrewSimulatorWidget(ScriptedLoadableModuleWidget):
     nNodes = slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLScriptedModuleNode')
 
     self.parameterNode = None
-    for n in xrange(nNodes):
+    for n in range(nNodes):
       compNode = slicer.mrmlScene.GetNthNodeByClass(n, 'vtkMRMLScriptedModuleNode')
       nodeid = None
       if compNode.GetModuleName() == 'PedicleScrewSimulator':
         self.parameterNode = compNode
-        print 'Found existing PedicleScrewSimulator parameter node'
+        logging.debug('Found existing PedicleScrewSimulator parameter node')
         break
     if self.parameterNode == None:
       self.parameterNode = slicer.vtkMRMLScriptedModuleNode()
@@ -111,7 +111,7 @@ class PedicleScrewSimulatorWidget(ScriptedLoadableModuleWidget):
     currentStep = self.parameterNode.GetParameter('currentStep')
     
     if currentStep != '':
-      print 'Restoring workflow step to ', currentStep
+      logging.debug('Restoring workflow step to ' + currentStep)
       if currentStep == 'LoadData':
         self.workflow.setInitialStep(self.loadDataStep)
       if currentStep == 'DefineROI':
@@ -127,7 +127,7 @@ class PedicleScrewSimulatorWidget(ScriptedLoadableModuleWidget):
       if currentStep == 'Final':
         self.workflow.setInitialStep(self.endStep)
     else:
-      print 'currentStep in parameter node is empty!'
+      logging.debug('currentStep in parameter node is empty')
     
     
     # start the workflow and show the widget

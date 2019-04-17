@@ -1,7 +1,7 @@
 from __main__ import qt, ctk, vtk, slicer
 
-from PedicleScrewSimulatorStep import *
-from Helper import *
+from .PedicleScrewSimulatorStep import *
+from .Helper import *
 import PythonQt
 import math
 import os
@@ -117,14 +117,8 @@ class ScrewStep(PedicleScrewSimulatorStep):
       
       self.fiducial = ctk.ctkComboBox()
       self.fiducial.toolTip = "Select an insertion site."
-      #fiducialList = ['Select an insertion landmark', self.fiduciallist]
-      #print self.fiduciallist
-      #print fiducialList
-      #self.fiducial.addItem("Select an insertion site, no really")
-      #self.fiducial.addItem("Select an insertion site.")
       self.fiducial.addItems(self.fiduciallist)
       self.connect(self.fiducial, PythonQt.QtCore.SIGNAL('activated(QString)'), self.fiducial_chosen)
-      #self.connect(self.fiducial, PythonQt.QtCore.SIGNAL('activated(QString)'), self.fidChanged)
       
       #self.screwGridLayout.addWidget(self.fiducial,0,0)
       
@@ -280,13 +274,13 @@ class ScrewStep(PedicleScrewSimulatorStep):
       self.currentFidIndex = self.fiducial.currentIndex
       self.currentFidLabel = self.fiducial.currentText
       self.fidNode.GetNthFiducialPosition(self.currentFidIndex,self.coords)
-      print self.coords
+      logging.debug("Coords: {0}".format(self.coords))
       self.updateMeasurements()
       self.cameraFocus(self.coords)
       #self.screwLandmarks()
     
     def insertScrew(self):
-      print "insert"
+      logging.debug("insert")
       self.timer.start()
       self.backoutScrewButton.enabled = True
       self.insertScrewButton.enabled = False
@@ -298,10 +292,10 @@ class ScrewStep(PedicleScrewSimulatorStep):
       temp = self.screwList[self.currentFidIndex]
       temp[3] = "1"
       self.screwList[self.currentFidIndex] = temp
-      print self.screwList
+      logging.debug("Screw list: {0}".format(self.screwList))
       
     def backoutScrew(self):
-      print "backout"
+      logging.debug("backout")
       self.timer2.start()
       self.backoutScrewButton.enabled = False
       self.insertScrewButton.enabled = True
@@ -312,23 +306,23 @@ class ScrewStep(PedicleScrewSimulatorStep):
       temp = self.screwList[self.currentFidIndex]
       temp[3] = "0"
       self.screwList[self.currentFidIndex] = temp
-      print self.screwList
+      logging.debug("Screw list: {0}".format(self.screwList))
             
     def resetScrew(self):
-      print "reset"  
+      logging.debug("reset")
       self.resetOrientation()
       
       temp = self.screwList[self.currentFidIndex]
       temp[3] = "0"
       self.screwList[self.currentFidIndex] = temp
-      print self.screwList
+      logging.debug("Screw list: {0}".format(self.screwList))
     
     def updateMeasurements(self):
       pedicleLength = slicer.modules.PedicleScrewSimulatorWidget.measurementsStep.angleTable.cellWidget(self.currentFidIndex,3).currentText
       pedicleWidth = slicer.modules.PedicleScrewSimulatorWidget.measurementsStep.angleTable.cellWidget(self.currentFidIndex,4).currentText
       self.lengthMeasure.setText(pedicleLength + " mm")
       self.widthMeasure.setText(pedicleWidth + " mm")
-      print pedicleLength
+      logging.debug("Pedicle length: {0}".format(pedicleLength))
       
     def screwLandmarks(self):
       self.fiducial = self.fiducialNode()
@@ -344,7 +338,7 @@ class ScrewStep(PedicleScrewSimulatorStep):
           self.fidSides.append(slicer.modules.PedicleScrewSimulatorWidget.measurementsStep.angleTable.cellWidget(i,2).currentText)
           #self.fidLevelSide.append(self.fidLevels[i] + " " + self.fidSides[i])
       
-      print self.fidLevelSide
+      logging.debug("Fid level side: {0}".format(self.fidLevelSide))
     
     def sliceChange(self):
         pos = [0,0,0]
@@ -364,9 +358,7 @@ class ScrewStep(PedicleScrewSimulatorStep):
           yellowController.setSliceOffsetValue(pos[0])
           greenController.setSliceOffsetValue(pos[1])
           redController.setSliceOffsetValue(pos[2])
-          print pos[0]
-          print pos[1]
-          print pos[2]
+          logging.debug("Position: {0}".format(pos))
           self.fidNode.UpdateScene(slicer.mrmlScene)
           
         else:
@@ -394,7 +386,7 @@ class ScrewStep(PedicleScrewSimulatorStep):
             self.transformSlider1.setValue(vertOrt)
             self.transformSlider2.setValue(horzOrt)
         
-        print self.__length
+        logging.debug("Length: {0}".format(self.__length))
         self.sliceChange()
         self.updateMeasurements()
         self.cameraFocus(self.coords)
@@ -411,9 +403,8 @@ class ScrewStep(PedicleScrewSimulatorStep):
             self.currentFidIndex = self.fiducial.currentIndex
             self.currentFidLabel = self.fiducial.currentText
             self.fidNode.GetNthFiducialPosition(self.currentFidIndex,self.coords)
-            print self.currentFidIndex
-            print self.currentFidLabel
-            print self.coords
+            logging.debug("Current fid index = {0}, label = {1}, coords = {2}".format(
+              self.currentFidIndex, self.currentFidLabel, self.coords))
             self.combo_chosen()
             
 
@@ -426,24 +417,18 @@ class ScrewStep(PedicleScrewSimulatorStep):
         if text != "Select a diameter (mm)":
             self.__diameter = text
             self.combo_chosen()
-
-    def updateComboBox(self):
-        print "update combo box"
-        print self.fiduciallist
-        self.fiducial.addItem("blah")
         
     def combo_chosen(self):
         if self.__length != "Select a length (mm)" and self.__diameter != "Select a diameter (mm)":
           self.screwPath = os.path.join(os.path.dirname(slicer.modules.pediclescrewsimulator.path), 'Resources/ScrewModels/scaled_' + self.__length + 'x' + self.__diameter + '.vtk')
           self.screwPath = self.screwPath.replace("\\","/")
-          print(self.screwPath)
+          logging.debug("Screw file path: {0}".format(self.screwPath))
           self.__loadScrewButton.enabled = True
           #self.screwName = 'scaled_' + text
           #self.transformSlider3.maximum = int(self.__diameter)
           
     def loadScrew(self):    
-        print "load screw button"
-        #self.fidChanged
+        logging.debug("load screw button")
 
         screwCheck = slicer.mrmlScene.GetFirstNodeByName('Screw at point %s' % self.currentFidLabel)
         if screwCheck != None:
@@ -554,7 +539,7 @@ class ScrewStep(PedicleScrewSimulatorStep):
       camera.ResetClippingRange()
           
     def transformSlider1ValueChanged(self, value):
-        print(value)
+        logging.debug("Transform slider 1 changed: {0}".format(value))
         
         newValue = value - self.valueTemp1
         
@@ -572,10 +557,10 @@ class ScrewStep(PedicleScrewSimulatorStep):
         temp = self.screwList[self.currentFidIndex]
         temp[4] = str(value)
         self.screwList[self.currentFidIndex] = temp
-        print self.screwList
+        logging.debug("Screw list: {0}".format(self.screwList))
         
     def transformSlider2ValueChanged(self, value):
-        print(value)
+        logging.debug("Transform slider 2 changed: {0}".format(value))
         
         newValue = value - self.valueTemp2
         
@@ -593,34 +578,31 @@ class ScrewStep(PedicleScrewSimulatorStep):
         temp = self.screwList[self.currentFidIndex]
         temp[5] = str(value)
         self.screwList[self.currentFidIndex] = temp
-        print self.screwList
-    
-    def nothing():
-        print "nothing"
-    
+        logging.debug("Screw list: {0}".format(self.screwList))
+        
     def delayDisplay(self,action, msec=1000):
-	"""This utility method displays a small dialog and waits.
-	This does two things: 1) it lets the event loop catch up
-	to the state of the test so that rendering and widget updates
-	have all taken place before the test continues and 2) it
-	shows the user/developer/tester the state of the test
-	so that we'll know when it breaks.
-	"""
-	#print(message)
-	#self.info = qt.QDialog()
-	#self.infoLayout = qt.QVBoxLayout()
-	#self.info.setLayout(self.infoLayout)
-	#self.label = qt.QLabel(message,self.info)
-	#self.infoLayout.addWidget(self.label)
-	#qt.QTimer.singleShot(msec, action)
-	#self.info.exec_()    
+      """This utility method displays a small dialog and waits.
+      This does two things: 1) it lets the event loop catch up
+      to the state of the test so that rendering and widget updates
+      have all taken place before the test continues and 2) it
+      shows the user/developer/tester the state of the test
+      so that we'll know when it breaks.
+      """
+      #logging.info(message)
+      #self.info = qt.QDialog()
+      #self.infoLayout = qt.QVBoxLayout()
+      #self.info.setLayout(self.infoLayout)
+      #self.label = qt.QLabel(message,self.info)
+      #self.infoLayout.addWidget(self.label)
+      #qt.QTimer.singleShot(msec, action)
+      #self.info.exec_()    
+      pass
     
                             
     def driveScrew(self):
         if self.screwInsert < int(self.__diameter):
             
             value = self.screwInsert
-            #print(value)
             # attempt to rotate with driving        
             
             angle3 = math.pi / 180.0 * 72 #((360/2.5)*self.screwInsert) 
@@ -639,7 +621,6 @@ class ScrewStep(PedicleScrewSimulatorStep):
             matrixScrew = transformFid.GetMatrixTransformToParent()
         
             newVal = value - self.driveTemp
-            print(newVal)
         
             drive1 = matrixScrew.GetElement(0,1)
             drive2 = matrixScrew.GetElement(1,1)
@@ -703,7 +684,6 @@ class ScrewStep(PedicleScrewSimulatorStep):
         if self.screwInsert < int(self.__diameter):
             
             value = self.screwInsert
-            #print(value)
             # attempt to rotate with driving        
             
             angle3 = math.pi / 180.0 * -72 #((360/2.5)*self.screwInsert) 
@@ -720,7 +700,6 @@ class ScrewStep(PedicleScrewSimulatorStep):
             matrixScrew = transformFid.GetMatrixTransformToParent()
         
             newVal = value - self.driveTemp
-            print(newVal)
         
             drive1 = matrixScrew.GetElement(0,1)
             drive2 = matrixScrew.GetElement(1,1)
@@ -844,23 +823,20 @@ class ScrewStep(PedicleScrewSimulatorStep):
       self.fidNode = self.fiducialNode()
       self.fidNodeObserver = self.fidNode.AddObserver(vtk.vtkCommand.ModifiedEvent,self.fidMove)
 
-      print self.fidNode
+      logging.debug("Fiducial node: {0}".format(self.fidNode))
       
       self.fidNode.SetLocked(1)
       slicer.modules.models.logic().SetAllModelsVisibility(1)
-
-      #self.updateComboBox()
       
       for x in range (0,self.fidNode.GetNumberOfFiducials()):
-        print x
         label = self.fidNode.GetNthFiducialLabel(x)
         level = slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.cellWidget(x,1).currentText
         side = slicer.modules.PedicleScrewSimulatorWidget.landmarksStep.table2.cellWidget(x,2).currentText
         self.fiduciallist.append(label + " / " + level + " / " + side)
-        print self.fiduciallist
         #modelX = slicer.mrmlScene.GetNodeByID('vtkMRMLModelDisplayNode' + str(x + 4))
         #modelX.SetSliceIntersectionVisibility(1)
      
+      logging.debug("Fiducial list: {0}".format(self.fiduciallist))
       
       #self.fiducial.clear()
       #self.fiducial.addItem("Select an insertion site")
@@ -875,7 +851,7 @@ class ScrewStep(PedicleScrewSimulatorStep):
       
       pNode = self.parameterNode()
       pNode.SetParameter('currentStep', self.stepid)
-      print(pNode.GetParameter('currentStep'))
+      logging.debug("Current step: {0}".format(pNode.GetParameter('currentStep')))
       self.approach = str(pNode.GetParameter('approach'))
 
       qt.QTimer.singleShot(0, self.killButton)
@@ -916,4 +892,4 @@ class ScrewStep(PedicleScrewSimulatorStep):
 
     def doStepProcessing(self):
 
-        print('Done')
+        logging.debug('Done')
