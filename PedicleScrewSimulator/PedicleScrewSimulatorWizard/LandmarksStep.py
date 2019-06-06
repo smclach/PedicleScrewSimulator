@@ -300,10 +300,11 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
 
       fiducialNode = self.fiducialNode()
       self.startMeasurements.setCurrentNode(fiducialNode)
-      self.fiducialNodeObservations.append(fiducialNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointAddedEvent, self.addFiducialToTable))
-      self.fiducialNodeObservations.append(fiducialNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointModifiedEvent, self.addFiducialToTable))
-      self.fiducialNodeObservations.append(fiducialNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointRemovedEvent, self.addFiducialToTable))
-      
+      if slicer.app.majorVersion>4 or (slicer.app.majorVersion == 4 and slicer.app.minorVersion > 10):
+        self.fiducialNodeObservations.append(fiducialNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointModifiedEvent, self.addFiducialToTable))
+      else:
+        # backward compatibility for Slicer-4.10 and earlier
+        self.fidObserve = fiducialNode.AddObserver('ModifiedEvent', self.addFiducialToTable)
       if comingFrom.id() == 'DefineROI':
           self.updateTable() 
      
