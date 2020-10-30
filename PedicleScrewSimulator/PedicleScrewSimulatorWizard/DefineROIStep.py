@@ -12,7 +12,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     self.setDescription( """Steps:\n  1. Define ROI (click and drag dotted colour box)\n  2. Select starting vertebrae and # to instrument""" )
 
     self.__parent = super( DefineROIStep, self )
-    
+
     self.reset()
 
     qt.QTimer.singleShot(0, self.killButton)
@@ -26,8 +26,8 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
 
     self.__roi = None
     self.__roiObserverTag = None
- 
-    
+
+
   def killButton(self):
     # hide useless button
     bl = slicer.util.findChildren(text='Final')
@@ -38,7 +38,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
   def createUserInterface( self ):
 
     self.__layout = self.__parent.createUserInterface()
-    
+
     vText = qt.QLabel("1st Instrumented Level:")
     iText = qt.QLabel("# to Instrument:")
     aText = qt.QLabel("Approach Direction:")
@@ -58,7 +58,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     #self.__layout.addWidget(self.vSelector)
     #self.__layout.addWidget(iText)
     #self.__layout.addWidget(self.iSelector)
-    
+
     self.vertebraeGridBox = qt.QGridLayout()
     self.vertebraeGridBox.addWidget(vText,0,0)
     self.vertebraeGridBox.addWidget(self.vSelector,1,0)
@@ -71,7 +71,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     self.vertebraeGridBox.addWidget(blank,1,3)
     self.vertebraeGridBox.addWidget(self.aSelector,1,4)
     self.__layout.addRow(self.vertebraeGridBox)
-    
+
     #self.__layout.addRow("Starting Instrumented Vertebra:",self.vSelector)
     #self.__layout.addRow("Number of Vertebrae to Instrument:",self.iSelector)
 
@@ -90,15 +90,15 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     font = roiLabel.font
     font.setBold(True)
     roiLabel.setFont(font)
-    
-    
+
+
     #creates combobox and populates it with all vtkMRMLAnnotationROINodes in the scene
     self.__roiSelector = slicer.qMRMLNodeComboBox()
     self.__roiSelector.nodeTypes = ['vtkMRMLAnnotationROINode']
     self.__roiSelector.toolTip = "ROI defining the structure of interest"
     self.__roiSelector.setMRMLScene(slicer.mrmlScene)
     self.__roiSelector.addEnabled = 1
-    
+
     #add label + combobox
     roiLayout.addRow( roiLabel, self.__roiSelector )
 
@@ -109,45 +109,45 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     voiGroupBox = qt.QGroupBox()
     voiGroupBox.setTitle( 'Define VOI' )
     roiLayout.addRow( voiGroupBox )
-    
+
     # create form layout for GroupBox
     voiGroupBoxLayout = qt.QFormLayout( voiGroupBox )
-    
+
     # create ROI Widget and add it to the form layout of the GroupBox
     self.__roiWidget = PythonQt.qSlicerAnnotationsModuleWidgets.qMRMLAnnotationROIWidget()
     voiGroupBoxLayout.addRow( self.__roiWidget )
-    
-    # Hide VR Details
-    vrCollapsibleButton = ctk.ctkCollapsibleButton()
-    #roiCollapsibleButton.setMaximumWidth(320)
-    vrCollapsibleButton.text = "Rendering Details"
-    self.__layout.addWidget(vrCollapsibleButton)
-    vrCollapsibleButton.collapsed = True
 
-    # Layout
-    vrLayout = qt.QFormLayout(vrCollapsibleButton)
-    
-    # the ROI parameters
-    # GroupBox to hold ROI Widget
-    vrGroupBox = qt.QGroupBox()
-    vrGroupBox.setTitle( 'Define Rendering' )
-    vrLayout.addRow( vrGroupBox )
-    
-    # create form layout for GroupBox
-    vrGroupBoxLayout = qt.QFormLayout( vrGroupBox )
-    
-    # create ROI Widget and add it to the form layout of the GroupBox
-    self.__vrWidget = PythonQt.qSlicerVolumeRenderingModuleWidgets.qSlicerPresetComboBox()
-    #self.__vrWidget = PythonQt.qSlicerVolumeRenderingModuleWidgets.qMRMLVolumePropertyNodeWidget()
-    vrGroupBoxLayout.addRow( self.__vrWidget )
-    
-    # initialize VR
-    self.__vrLogic = slicer.modules.volumerendering.logic()
+    # # Hide VR Details
+    # vrCollapsibleButton = ctk.ctkCollapsibleButton()
+    # #roiCollapsibleButton.setMaximumWidth(320)
+    # vrCollapsibleButton.text = "Rendering Details"
+    # self.__layout.addWidget(vrCollapsibleButton)
+    # vrCollapsibleButton.collapsed = True
+
+    # # Layout
+    # vrLayout = qt.QFormLayout(vrCollapsibleButton)
+
+    # # the ROI parameters
+    # # GroupBox to hold ROI Widget
+    # vrGroupBox = qt.QGroupBox()
+    # vrGroupBox.setTitle( 'Define Rendering' )
+    # vrLayout.addRow( vrGroupBox )
+
+    # # create form layout for GroupBox
+    # vrGroupBoxLayout = qt.QFormLayout( vrGroupBox )
+
+    # # create ROI Widget and add it to the form layout of the GroupBox
+    # self.__vrWidget = PythonQt.qSlicerVolumeRenderingModuleWidgets.qSlicerPresetComboBox()
+    # #self.__vrWidget = PythonQt.qSlicerVolumeRenderingModuleWidgets.qMRMLVolumePropertyNodeWidget()
+    # vrGroupBoxLayout.addRow( self.__vrWidget )
+
+    # # initialize VR
+    # self.__vrLogic = slicer.modules.volumerendering.logic()
 
     # self.updateWidgetFromParameters(self.parameterNode())
     qt.QTimer.singleShot(0, self.killButton)
 
-    
+
   #called when ROI bounding box is altered
   def onROIChanged(self):
     #read ROI node from combobox
@@ -155,66 +155,69 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
 
     if roi != None:
       self.__roi = roi
-    
+
       # create VR node first time a valid ROI is selected
       self.InitVRDisplayNode()
 
       # update VR settings each time ROI changes
       pNode = self.parameterNode()
       # get scalar volume node loaded in previous step
-      v = slicer.mrmlScene.GetNodeByID(pNode.GetParameter('baselineVolumeID'))
-      
+      v = pNode.GetNodeReference('baselineVolume')
+
       #set parameters for VR display node
       self.__vrDisplayNode.SetAndObserveROINodeID(roi.GetID())
       self.__vrDisplayNode.SetCroppingEnabled(1)
       self.__vrDisplayNode.VisibilityOn()
-      
+
       #transform ROI
       roi.SetAndObserveTransformNodeID(self.__roiTransformNode.GetID())
 
 
       if self.__roiObserverTag != None:
         self.__roi.RemoveObserver(self.__roiObserverTag)
-        
+
       #add observer to ROI. call self.processROIEvents if ROI is altered
       self.__roiObserverTag = self.__roi.AddObserver('ModifiedEvent', self.processROIEvents)
-      
+
       #enable click and drag functions on ROI
       roi.SetInteractiveMode(1)
-      
+
       #connect ROI widget to ROI
       self.__roiWidget.setMRMLAnnotationROINode(roi)
       self.__roi.SetDisplayVisibility(1)
-     
-  def processROIEvents(self,node,event):
+
+  def processROIEvents(self,node=None,event=None):
     # get the range of intensities inside the ROI
+
+    # Make updates faster and prevent flickering (due to transfer function editing)
+    slicer.app.pauseRender()
 
     # get the IJK bounding box of the voxels inside ROI
     roiCenter = [0,0,0]
     roiRadius = [0,0,0]
-    
+
     #get center coordinate
     self.__roi.GetXYZ(roiCenter)
     logging.debug(roiCenter)
-    
+
     #change slices to center of ROI
     lm = slicer.app.layoutManager()
     redWidget = lm.sliceWidget('Red')
     redController = redWidget.sliceController()
-        
+
     yellowWidget = lm.sliceWidget('Yellow')
     yellowController = yellowWidget.sliceController()
-        
+
     greenWidget = lm.sliceWidget('Green')
     greenController = greenWidget.sliceController()
-        
+
     yellowController.setSliceOffsetValue(roiCenter[0])
     greenController.setSliceOffsetValue(roiCenter[1])
     redController.setSliceOffsetValue(roiCenter[2])
-    
+
     #get radius
     self.__roi.GetRadiusXYZ(roiRadius)
-    
+
     #get IJK coordinates of 8 corners of ROI
     roiCorner1 = [roiCenter[0]+roiRadius[0],roiCenter[1]+roiRadius[1],roiCenter[2]+roiRadius[2],1]
     roiCorner2 = [roiCenter[0]+roiRadius[0],roiCenter[1]+roiRadius[1],roiCenter[2]-roiRadius[2],1]
@@ -224,11 +227,11 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     roiCorner6 = [roiCenter[0]-roiRadius[0],roiCenter[1]+roiRadius[1],roiCenter[2]-roiRadius[2],1]
     roiCorner7 = [roiCenter[0]-roiRadius[0],roiCenter[1]-roiRadius[1],roiCenter[2]+roiRadius[2],1]
     roiCorner8 = [roiCenter[0]-roiRadius[0],roiCenter[1]-roiRadius[1],roiCenter[2]-roiRadius[2],1]
-    
+
     #get RAS transformation matrix of scalar volume and convert it to IJK matrix
     ras2ijk = vtk.vtkMatrix4x4()
     self.__baselineVolume.GetRASToIJKMatrix(ras2ijk)
-    
+
     roiCorner1ijk = ras2ijk.MultiplyPoint(roiCorner1)
     roiCorner2ijk = ras2ijk.MultiplyPoint(roiCorner2)
     roiCorner3ijk = ras2ijk.MultiplyPoint(roiCorner3)
@@ -248,23 +251,23 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     upperIJK[0] = max(roiCorner1ijk[0],roiCorner2ijk[0],roiCorner3ijk[0],roiCorner4ijk[0],roiCorner5ijk[0],roiCorner6ijk[0],roiCorner7ijk[0],roiCorner8ijk[0])
     upperIJK[1] = max(roiCorner1ijk[1],roiCorner2ijk[1],roiCorner3ijk[1],roiCorner4ijk[1],roiCorner5ijk[1],roiCorner6ijk[1],roiCorner7ijk[1],roiCorner8ijk[1])
     upperIJK[2] = max(roiCorner1ijk[2],roiCorner2ijk[2],roiCorner3ijk[2],roiCorner4ijk[2],roiCorner5ijk[2],roiCorner6ijk[2],roiCorner7ijk[2],roiCorner8ijk[2])
-    
+
     #get image data of scalar volume
     image = self.__baselineVolume.GetImageData()
-    
+
     #create image clipper
     clipper = vtk.vtkImageClip()
     clipper.ClipDataOn()
     clipper.SetOutputWholeExtent(int(lowerIJK[0]),int(upperIJK[0]),int(lowerIJK[1]),int(upperIJK[1]),int(lowerIJK[2]),int(upperIJK[2]))
     clipper.SetInputData(image)
     clipper.Update()
-    
+
     #read upper and lower threshold values from clipped volume
     roiImageRegion = clipper.GetOutput()
     intRange = roiImageRegion.GetScalarRange()
     lThresh = 0.4*(intRange[0]+intRange[1])
     uThresh = intRange[1]
-    
+
     #create new opacity map with voxels falling between upper and lower threshold values at 100% opacity. All others at 0%
     self.__vrOpacityMap.RemoveAllPoints()
     self.__vrOpacityMap.AddPoint(0,0)
@@ -279,27 +282,39 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     camera.SetPosition(roiCenter[0],-600,roiCenter[2])
     camera.SetViewUp([0,0,1])
 
+    slicer.app.resumeRender()
+
   #set up VR
   def InitVRDisplayNode(self):
     #If VR node exists, load it from saved ID
     if self.__vrDisplayNode == None:
       pNode = self.parameterNode()
-      vrNodeID = pNode.GetParameter('vrDisplayNodeID')
-      if vrNodeID == '':
-        self.__vrDisplayNode = slicer.modules.volumerendering.logic().CreateVolumeRenderingDisplayNode()
-        slicer.mrmlScene.AddNode(self.__vrDisplayNode)
-        self.__vrDisplayNode.UnRegister(slicer.modules.volumerendering.logic())
-        v = slicer.mrmlScene.GetNodeByID(self.parameterNode().GetParameter('baselineVolumeID'))
-        Helper.InitVRDisplayNode(self.__vrDisplayNode, v.GetID(), self.__roi.GetID())
-        v.AddAndObserveDisplayNodeID(self.__vrDisplayNode.GetID())
-      else:
-        self.__vrDisplayNode = slicer.mrmlScene.GetNodeByID(vrNodeID)
+      self.__vrDisplayNode = pNode.GetNodeReference('vrDisplayNode')
+      if not self.__vrDisplayNode:
+        v = pNode.GetNodeReference('baselineVolume')
+        logging.debug('PedicleScrewSimulator VR: will observe ID '+v.GetID())
+        vrLogic = slicer.modules.volumerendering.logic()
+        self.__vrDisplayNode = vrLogic.CreateDefaultVolumeRenderingNodes(v)
+
+        propNode = self.__vrDisplayNode.GetVolumePropertyNode()
+        logging.debug('Property node: '+propNode.GetID())
+
+        defaultRoiNode = self.__vrDisplayNode.GetROINode()
+        if defaultRoiNode != self.__roi:
+          self.__vrDisplayNode.SetAndObserveROINodeID(self.__roi.GetID())
+          slicer.mrmlScene.RemoveNode(defaultRoiNode)
+
+        vrLogic.CopyDisplayToVolumeRenderingDisplayNode(self.__vrDisplayNode)
+
+        # Workaround: depth peeling must be disabled for volume rendering to appear properly
+        viewNode = slicer.mrmlScene.GetNodeByID('vtkMRMLViewNode1')
+        viewNode.SetUseDepthPeeling(False)
 
     viewNode = slicer.mrmlScene.GetNodeByID('vtkMRMLViewNode1')
     self.__vrDisplayNode.AddViewNodeID(viewNode.GetID())
-    
+
     slicer.modules.volumerendering.logic().CopyDisplayToVolumeRenderingDisplayNode(self.__vrDisplayNode)
-    
+
     #update opacity and color map
     self.__vrOpacityMap = self.__vrDisplayNode.GetVolumePropertyNode().GetVolumeProperty().GetScalarOpacity()
     self.__vrColorMap = self.__vrDisplayNode.GetVolumePropertyNode().GetVolumeProperty().GetRGBTransferFunction()
@@ -310,14 +325,18 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     self.__vrColorMap.AddRGBPoint(0, 0.95,0.84,0.57)
     self.__vrColorMap.AddRGBPoint(500, 0.95,0.84,0.57)
 
+    # Update transfer function based on ROI
+    self.processROIEvents()
+
+
 
   def onEntry(self,comingFrom,transitionType):
     super(DefineROIStep, self).onEntry(comingFrom, transitionType)
-    
+
     # setup the interface
     lm = slicer.app.layoutManager()
     lm.setLayout(3)
-    
+
     #create progress bar dialog
     self.progress = qt.QProgressDialog(slicer.util.mainWindow())
     self.progress.minimumDuration = 0
@@ -327,29 +346,24 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     self.progress.setCancelButton(0)
     self.progress.setMinimumWidth(500)
     self.progress.setWindowModality(2)
- 
+
     self.progress.setLabelText('Generating Volume Rendering...')
     slicer.app.processEvents(qt.QEventLoop.ExcludeUserInputEvents)
     self.progress.repaint()
-    
+
     #read scalar volume node ID from previous step
     pNode = self.parameterNode()
-    baselineVolume = slicer.mrmlScene.GetNodeByID(pNode.GetParameter('baselineVolumeID'))
-    self.__baselineVolume = baselineVolume
-    
+    self.__baselineVolume = pNode.GetNodeReference('baselineVolume')
+
     #if ROI was created previously, get its transformation matrix and update current ROI
-    roiTransformID = pNode.GetParameter('roiTransformID')
-    roiTransformNode = None
-    
-    if roiTransformID != '':
-      roiTransformNode = slicer.mrmlScene.GetNodeByID(roiTransformID)
-    else:
+    roiTransformNode = pNode.GetNodeReference('roiTransform')
+    if not roiTransformNode:
       roiTransformNode = slicer.vtkMRMLLinearTransformNode()
       slicer.mrmlScene.AddNode(roiTransformNode)
-      pNode.SetParameter('roiTransformID', roiTransformNode.GetID())
+      pNode.SetNodeReferenceID('roiTransform', roiTransformNode.GetID())
 
     dm = vtk.vtkMatrix4x4()
-    baselineVolume.GetIJKToRASDirectionMatrix(dm)
+    self.__baselineVolume.GetIJKToRASDirectionMatrix(dm)
     dm.SetElement(0,3,0)
     dm.SetElement(1,3,0)
     dm.SetElement(2,3,0)
@@ -357,17 +371,15 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     dm.SetElement(1,1,abs(dm.GetElement(1,1)))
     dm.SetElement(2,2,abs(dm.GetElement(2,2)))
     roiTransformNode.SetMatrixTransformToParent(dm)
-    
-    
-    Helper.SetBgFgVolumes(pNode.GetParameter('baselineVolumeID'))
+
+
+    Helper.SetBgFgVolumes(self.__baselineVolume.GetID())
     Helper.SetLabelVolume(None)
 
     # use this transform node to align ROI with the axes of the baseline
     # volume
-    roiTfmNodeID = pNode.GetParameter('roiTransformID')
-    if roiTfmNodeID != '':
-      self.__roiTransformNode = slicer.mrmlScene.GetNodeByID(roiTfmNodeID)
-    else:
+    self.__roiTransformNode = pNode.GetNodeReference('roiTransform')
+    if not self.__roiTransformNode:
       Helper.Error('Internal error! Error code CT-S2-NRT, please report!')
 
     # get the roiNode from parameters node, if it exists, and initialize the
@@ -377,22 +389,24 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     # start VR
     if self.__roi != None:
       self.__roi.SetDisplayVisibility(1)
+      # Make sure the GUI is fully initilized because user will see it for a few seconds, while VR is being set up
+      slicer.app.processEvents()
       self.InitVRDisplayNode()
-    
+
     #close progress bar
     self.progress.setValue(2)
     self.progress.repaint()
     slicer.app.processEvents(qt.QEventLoop.ExcludeUserInputEvents)
     self.progress.close()
     self.progress = None
-        
+
     #pNode.SetParameter('currentStep', self.stepid)
-    
+
     qt.QTimer.singleShot(0, self.killButton)
 
 
   def validate( self, desiredBranchId ):
-    
+
     self.__parent.validate( desiredBranchId )
     roi = self.__roiSelector.currentNode()
     if roi == None:
@@ -404,29 +418,29 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     else:
       self.__parent.validationSucceeded('fail')
       slicer.mrmlScene.Clear(0)
-      
-      
+
+
   def onExit(self, goingTo, transitionType):
-   
+
     if goingTo.id() != 'Landmarks' and goingTo.id() != 'LoadData': # Change to next step
       return
-    
+
     pNode = self.parameterNode()
     # TODO: add storeWidgetStateToParameterNode() -- move all pNode-related stuff
     # there?
     if self.__roi != None:
         self.__roi.RemoveObserver(self.__roiObserverTag)
         self.__roi.SetDisplayVisibility(0)
-        
+
     if self.__roiSelector.currentNode() != None:
-        pNode.SetParameter('roiNodeID', self.__roiSelector.currentNode().GetID())
-        
+        pNode.SetNodeReferenceID('roiNode', self.__roiSelector.currentNode().GetID())
+
     if self.__vrDisplayNode != None:
         #self.__vrDisplayNode.VisibilityOff()
-        pNode.SetParameter('vrDisplayNodeID', self.__vrDisplayNode.GetID())
-        
+        pNode.SetNodeReferenceID('vrDisplayNode', self.__vrDisplayNode.GetID())
+
     if goingTo.id() == 'Landmarks': # Change to next step
-    
+
         #create progress bar dialog
         self.progress = qt.QProgressDialog(slicer.util.mainWindow())
         self.progress.minimumDuration = 0
@@ -436,13 +450,13 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
         self.progress.setCancelButton(0)
         self.progress.setMinimumWidth(500)
         self.progress.setWindowModality(2)
-     
+
         self.progress.setLabelText('Cropping and resampling volume...')
         slicer.app.processEvents(qt.QEventLoop.ExcludeUserInputEvents)
         self.progress.repaint()
-    
+
         self.doStepProcessing()
-        
+
         #close progress bar
         self.progress.setValue(2)
         self.progress.repaint()
@@ -453,19 +467,18 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     super(DefineROIStep, self).onExit(goingTo, transitionType)
 
   def updateWidgetFromParameterNode(self, parameterNode):
-    roiNodeID = parameterNode.GetParameter('roiNodeID')
+    roiNode = parameterNode.GetNodeReference('roiNode')
+    if not roiNode:
+      roiNode = slicer.vtkMRMLAnnotationROINode()
+      roiNode.Initialize(slicer.mrmlScene)
+      parameterNode.SetNodeReferenceID('roiNode', roiNode.GetID())
+      roiNode.SetRadiusXYZ(50, 50, 100)
+      # initialize slightly off-center, as spine is usually towards posterior side of the image
+      roiNode.SetXYZ(0, -50, 0)
+    self.__roiSelector.setCurrentNode(roiNode)
 
-    if roiNodeID != '':
-      self.__roi = slicer.mrmlScene.GetNodeByID(roiNodeID)
-      self.__roiSelector.setCurrentNode(slicer.mrmlScene.GetNodeByID(self.__roi.GetID()))
-    else:
-      roi = slicer.vtkMRMLAnnotationROINode()
-      roi.Initialize(slicer.mrmlScene)
-      parameterNode.SetParameter('roiNodeID', roi.GetID())
-      self.__roiSelector.setCurrentNode(roi)
-    
     self.onROIChanged()
-      
+
 
   def doStepProcessing(self):
     '''
@@ -477,7 +490,7 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     pNode.SetParameter('vertebra', self.vSelector.currentText)
     pNode.SetParameter('inst_length', self.iSelector.currentText)
     pNode.SetParameter('approach', self.aSelector.currentText)
-    
+
     cropVolumeNode = slicer.vtkMRMLCropVolumeParametersNode()
     cropVolumeNode.SetScene(slicer.mrmlScene)
     cropVolumeNode.SetName('CropVolume_node')
@@ -486,8 +499,8 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     slicer.mrmlScene.AddNode(cropVolumeNode)
     # TODO hide from MRML tree
 
-    cropVolumeNode.SetInputVolumeNodeID(pNode.GetParameter('baselineVolumeID'))
-    cropVolumeNode.SetROINodeID(pNode.GetParameter('roiNodeID'))
+    cropVolumeNode.SetInputVolumeNodeID(pNode.GetNodeReference('baselineVolume').GetID())
+    cropVolumeNode.SetROINodeID(pNode.GetNodeReference('roiNode').GetID())
     # cropVolumeNode.SetAndObserveOutputVolumeNodeID(outputVolume.GetID())
 
     cropVolumeLogic = slicer.modules.cropvolume.logic()
@@ -496,6 +509,6 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     # TODO: cropvolume error checking
     outputVolume = slicer.mrmlScene.GetNodeByID(cropVolumeNode.GetOutputVolumeNodeID())
     outputVolume.SetName("baselineROI")
-    pNode.SetParameter('croppedBaselineVolumeID',cropVolumeNode.GetOutputVolumeNodeID())
-    
+    pNode.SetNodeReferenceID('croppedBaselineVolume',cropVolumeNode.GetOutputVolumeNodeID())
+
     self.__vrDisplayNode = None

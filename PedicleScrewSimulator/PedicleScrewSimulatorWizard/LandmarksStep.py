@@ -6,19 +6,19 @@ import PythonQt
 import os
 
 class LandmarksStep( PedicleScrewSimulatorStep ):
-    
+
     def __init__( self, stepid ):
       self.initialize( stepid )
       self.setName( '3. Identify Insertion Landmarks' )
       self.setDescription( 'Place at least one fiducial on the spine to mark a screw insertion point.' )
-      
+
       self.__parent = super( LandmarksStep, self )
       qt.QTimer.singleShot(0, self.killButton)
       self.levels = ("C1","C2","C3","C4","C5","C6","C7","T1","T2","T3","T4","T5","T6","T7","T8","T9","T10","T11","T12","L1", "L2", "L3", "L4", "L5","S1")
       self.startCount = 0
       self.addCount = 0
       self.fiducialNodeObservations = []
-          
+
     def killButton(self):
       # hide useless button
       bl = slicer.util.findChildren(text='Final')
@@ -31,36 +31,36 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
 
     def stop(self):
       self.startMeasurements.placeModeEnabled = False
-      
-    def cameraFocus(self, position):  
+
+    def cameraFocus(self, position):
       camera = slicer.mrmlScene.GetNodeByID('vtkMRMLCameraNode1')
-      
+
       if self.approach == 'Posterior':
-          
+
           camera.SetFocalPoint(*position)
           camera.SetPosition(position[0],-200,position[2])
           camera.SetViewUp([0,0,1])
-               
+
       elif self.approach == 'Anterior':
-          
+
           camera.SetFocalPoint(*position)
           camera.SetPosition(position[0],200,position[2])
           camera.SetViewUp([0,0,1])
-               
+
       elif self.approach == 'Left':
-          
+
           camera.SetFocalPoint(*position)
           camera.SetPosition(-200,position[1],position[2])
           camera.SetViewUp([0,0,1])
-                
+
       elif self.approach == 'Right':
-          
+
           camera.SetFocalPoint(*position)
           camera.SetPosition(200,position[1],position[2])
           camera.SetViewUp([0,0,1])
-      
+
       camera.ResetClippingRange()
-      
+
     def onTableCellClicked(self):
       if self.table2.currentColumn() == 0:
           logging.debug(self.table2.currentRow())
@@ -70,8 +70,8 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
           self.fiducial.GetNthFiducialPosition(currentFid,position)
           logging.debug(position)
           self.cameraFocus(position)
-            
-        
+
+
     def updateTable(self):
       #logging.debug(pNode.GetParameter('vertebrae'))
       self.fiducial = self.fiducialNode()
@@ -82,8 +82,8 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
       self.Label = qt.QTableWidgetItem()
 
       self.table2.setRowCount(self.fidNumber)
-      
-      
+
+
       for i in range(0,self.fidNumber):
           self.Label = qt.QTableWidgetItem(self.fiducial.GetNthFiducialLabel(i))
           self.items.append(self.Label)
@@ -96,7 +96,7 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
           self.table2.setCellWidget(i,2, self.comboSide)
       logging.debug(self.Label.text())
 
-    def deleteFiducial(self):   
+    def deleteFiducial(self):
       if self.table2.currentColumn() == 0:
           item = self.table2.currentItem()
           self.fidNumber = self.fiducial.GetNumberOfFiducials()
@@ -110,11 +110,11 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
           logging.debug(self.table2.currentRow())
           row = self.table2.currentRow()
           self.table2.removeRow(row)
-          
+
     def lockFiducials(self):
-      fidNode = self.fiducialNode()                   
+      fidNode = self.fiducialNode()
       slicer.modules.markups.logic().SetAllMarkupsLocked(fidNode,True)
-      
+
     def addFiducials(self):
       pass
 
@@ -129,8 +129,8 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
       self.Label = qt.QTableWidgetItem()
 
       self.table2.setRowCount(self.fidNumber)
-      
-      
+
+
       for i in range(0,self.fidNumber):
           self.Label = qt.QTableWidgetItem(self.fiducial.GetNthFiducialLabel(i))
           self.items.append(self.Label)
@@ -152,25 +152,25 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
           elif i == 4 or i == 5:
             self.table2.cellWidget(i,1).setCurrentIndex(2)
             if i == 5:
-              self.table2.cellWidget(i,2).setCurrentIndex(1)    
-      
+              self.table2.cellWidget(i,2).setCurrentIndex(1)
+
       #self.addCount = self.addCount + 1
 
     def createUserInterface( self ):
       markup = slicer.modules.markups.logic()
       markup.AddNewFiducialNode()
 
-      
-      
+
+
       self.__layout = self.__parent.createUserInterface()
       self.startMeasurements = slicer.qSlicerMarkupsPlaceWidget()
       self.startMeasurements.setButtonsVisible(False)
       self.startMeasurements.placeButton().show()
       self.startMeasurements.setMRMLScene(slicer.mrmlScene)
       self.startMeasurements.placeMultipleMarkups = slicer.qSlicerMarkupsPlaceWidget.ForcePlaceMultipleMarkups
-      self.startMeasurements.connect('activeMarkupsFiducialPlaceModeChanged(bool)', self.addFiducials)          
-      #self.__layout.addWidget(self.startMeasurements)  
-      
+      self.startMeasurements.connect('activeMarkupsFiducialPlaceModeChanged(bool)', self.addFiducials)
+      #self.__layout.addWidget(self.startMeasurements)
+
       #self.stopMeasurements = qt.QPushButton("Stop Placing")
       #self.stopMeasurements.connect('clicked(bool)', self.stop)
       #self.__layout.addWidget(self.stopMeasurements)
@@ -178,15 +178,15 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
       #self.updateTable2 = qt.QPushButton("Update Table")
       #self.updateTable2.connect('clicked(bool)', self.updateTable)
       #self.__layout.addWidget(self.updateTable2)
-      
+
       buttonLayout = qt.QHBoxLayout()
-      buttonLayout.addWidget(self.startMeasurements) 
+      buttonLayout.addWidget(self.startMeasurements)
       #buttonLayout.addWidget(self.stopMeasurements)
       #buttonLayout.addWidget(self.updateTable2)
       self.__layout.addRow(buttonLayout)
 
-      '''       
-      # Table Output of Fiducial List (Slicer 4.3 Markups)  
+      '''
+      # Table Output of Fiducial List (Slicer 4.3 Markups)
       tableDescription = qt.QLabel('List of Points Added to Scene:')
       self.__layout.addRow(tableDescription)
       self.__markupWidget = slicer.modules.markups.createNewWidgetRepresentation()
@@ -215,7 +215,7 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
       self.table2.setHorizontalHeaderLabels(horizontalHeaders)
       self.table2.itemSelectionChanged.connect(self.onTableCellClicked)
       self.__layout.addWidget(self.table2)
-      
+
 
       self.deleteFid = qt.QPushButton("Remove Selected Fiducial")
       self.deleteFid.connect('clicked(bool)', self.deleteFiducial)
@@ -223,7 +223,7 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
 
 
       # Camera Transform Sliders
-      
+
       transCam = ctk.ctkCollapsibleButton()
       transCam.text = "Shift Camera Position"
       transCam.collapsed = True
@@ -238,22 +238,22 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
       #transWidgetPart = transWidget.findChild('ctkCollapsibleButton')
       #transformSliders = transWidgetPart.findChildren('qMRMLTransformSliders')
       camLayout.addRow(a)
-            
-                   
+
+
       qt.QTimer.singleShot(0, self.killButton)
-       
-    
+
+
     def onEntry(self, comingFrom, transitionType):
 
       super(LandmarksStep, self).onEntry(comingFrom, transitionType)
-      
+
       qt.QTimer.singleShot(0, self.killButton)
-      
+
       lm = slicer.app.layoutManager()
-      if lm == None: 
-        return 
+      if lm == None:
+        return
       lm.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
-          
+
       pNode = self.parameterNode()
       logging.debug(pNode)
       self.levelselection = []
@@ -264,7 +264,7 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
           #logging.debug(self.levels[i])
           self.levelselection.append(self.levels[i])
       logging.debug(self.levelselection)
-      
+
       camera = slicer.mrmlScene.GetNodeByID('vtkMRMLCameraNode1')
       if self.approach == 'Posterior':
           logging.debug("posterior")
@@ -286,7 +286,7 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
       #pNode = self.parameterNode()
       #pNode.SetParameter('currentStep', self.stepid)
       '''
-      #roiVolume = Helper.getNodeByID(pNode.GetParameter('croppedBaselineVolumeID'))
+      #roiVolume = pNode.GetNodeReference('croppedBaselineVolume')
       selectionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLSelectionNodeSingleton")
       # place rulers
       selectionNode.SetReferenceActivePlaceNodeClassName("vtkMRMLMarkupsFiducialNode")
@@ -306,13 +306,13 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
         # backward compatibility for Slicer-4.10 and earlier
         self.fidObserve = fiducialNode.AddObserver('ModifiedEvent', self.addFiducialToTable)
       if comingFrom.id() == 'DefineROI':
-          self.updateTable() 
-     
+          self.updateTable()
+
     def getLandmarksNode(self):
       return self.startMeasurements.currentNode()
-     
+
     def onExit(self, goingTo, transitionType):
-      
+
       if goingTo.id() == 'Measurements' or goingTo.id() == 'DefineROI':
           self.stop()
           fiducialNode = self.fiducialNode()
@@ -321,13 +321,13 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
           self.fiducialNodeObservations = []
           self.doStepProcessing()
           #logging.debug(self.table2.cellWidget(0,1).currentText)
-      
+
       #if goingTo.id() == 'Threshold':
-          #slicer.mrmlScene.RemoveNode(self.__outModel)     
-      
+          #slicer.mrmlScene.RemoveNode(self.__outModel)
+
       if goingTo.id() != 'DefineROI' and goingTo.id() != 'Measurements':
           return
-      
+
       super(LandmarksStep, self).onExit(goingTo, transitionType)
       '''
       selectionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLSelectionNodeSingleton")
@@ -344,17 +344,17 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
 
       self.__parent.validate( desiredBranchId )
       self.__parent.validationSucceeded(desiredBranchId)
-      
+
       #self.inputFiducialsNodeSelector.update()
-      #fid = self.inputFiducialsNodeSelector.currentNode() 
-      fidNumber = self.fiducial.GetNumberOfFiducials() 
-       
+      #fid = self.inputFiducialsNodeSelector.currentNode()
+      fidNumber = self.fiducial.GetNumberOfFiducials()
+
       #pNode = self.parameterNode()
       if fidNumber != 0:
       #  fidID = fid.GetID()
       #  if fidID != '':
       #    pNode = self.parameterNode()
-      #    pNode.SetParameter('fiducialID', fidID)
+      #    pNode.SetNodeReferenceID('fiducial', fidID)
           self.__parent.validationSucceeded(desiredBranchId)
       else:
           self.__parent.validationFailed(desiredBranchId, 'Error','Please place at least one fiducial on the model before proceeding')
@@ -362,6 +362,6 @@ class LandmarksStep( PedicleScrewSimulatorStep ):
     def doStepProcessing(self):
       #list = ['a','b','c']
       #listNode = self.parameterNode()
-      #listNode.SetParameter = ('list', list)  
+      #listNode.SetParameter = ('list', list)
       logging.debug('Done')
-      self.lockFiducials()  
+      self.lockFiducials()
