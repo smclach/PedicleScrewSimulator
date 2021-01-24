@@ -23,28 +23,28 @@ class LoadDataStep(PedicleScrewSimulatorStep):
 
       self.__layout = self.__parent.createUserInterface()
 
-      #load sample data
-      self.__loadSampleCtDataButton = qt.QPushButton("Load sample spine CT")
-      self.__layout.addRow(self.__loadSampleCtDataButton)
-      self.__loadSampleCtDataButton.connect('clicked(bool)', self.loadSampleVolume)
+      #import DICOM folder button
+      self.__importDICOMBrowser = qt.QPushButton("Import DICOM folder")
+      self.__layout.addRow(self.__importDICOMBrowser)
+      self.__importDICOMBrowser.connect('clicked(bool)', self.importDICOMBrowser)
 
-
-      #clones DICOM scriptable module
-      self.__dicomWidget = slicer.modules.dicom.widgetRepresentation()
-
-      #extract button that launches DICOM browser from widget
-      colButtons = self.__dicomWidget.findChildren('ctkCollapsibleButton')
-      dicomButton = colButtons[1].findChild('QPushButton')
-      dicomButton.setText('Load spine CT from DICOM')
-      self.__layout.addRow(dicomButton)
+      #show DICOM browser button
+      self.__showDICOMBrowserButton = qt.QPushButton("Show DICOM browser")
+      self.__layout.addRow(self.__showDICOMBrowserButton)
+      self.__showDICOMBrowserButton.connect('clicked(bool)', self.showDICOMBrowser)
 
       #open load data dialog for adding nrrd files
       self.__loadScrewButton = qt.QPushButton("Load spine CT from other file")
       self.__layout.addRow(self.__loadScrewButton)
       self.__loadScrewButton.connect('clicked(bool)', self.loadVolume)
 
+      #load sample data
+      self.__loadSampleCtDataButton = qt.QPushButton("Load sample spine CT")
+      self.__layout.addRow(self.__loadSampleCtDataButton)
+      self.__loadSampleCtDataButton.connect('clicked(bool)', self.loadSampleVolume)
+
       #Active Volume text
-      self.activeText = qt.QLabel("Active Volume Data:")
+      self.activeText = qt.QLabel("Spine CT:")
       self.__layout.addRow(self.activeText)
 
       #select volume
@@ -66,10 +66,34 @@ class LoadDataStep(PedicleScrewSimulatorStep):
       cam = slicer.mrmlScene.GetNodeByID('vtkMRMLCameraNode1')
       cam.SetAndObserveTransformNodeID('vtkMRMLLinearTransformNode4')
 
+    def importDICOMBrowser(self):
+      """If DICOM database is invalid then try to create a default one. If fails then show an error message.
+      """
+      if slicer.modules.DICOMInstance.browserWidget is None:
+        slicer.util.selectModule('DICOM')
+        slicer.util.selectModule('PedicleScrewSimulator')
+      if not slicer.dicomDatabase or not slicer.dicomDatabase.isOpen:
+        # Try to create a database with default settings
+        slicer.modules.DICOMInstance.browserWidget.dicomBrowser.createNewDatabaseDirectory()
+        if not slicer.dicomDatabase or not slicer.dicomDatabase.isOpen:
+          # Failed to create database
+          # Show DICOM browser then display error message
+          slicer.app.layoutManager().setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutDicomBrowserView)
+          slicer.util.warningDisplay("Could not create a DICOM database with default settings. Please create a new database or"
+            " update the existing incompatible database using options shown in DICOM browser.")
+          return
+
+      slicer.modules.dicom.widgetRepresentation().self().browserWidget.dicomBrowser.openImportDialog()
+      slicer.app.layoutManager().setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutDicomBrowserView)
+
+    def showDICOMBrowser(self):
+      if slicer.modules.DICOMInstance.browserWidget is None:
+        slicer.util.selectModule('DICOM')
+        slicer.util.selectModule('PedicleScrewSimulator')
+      slicer.app.layoutManager().setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutDicomBrowserView)
 
     def loadVolume(self):
-
-        slicer.util.openAddDataDialog()
+      slicer.util.openAddDataDialog()
 
 
     def loadSampleVolume(self):
