@@ -72,6 +72,8 @@ class LoadDataStep(PedicleScrewSimulatorStep):
       if slicer.modules.DICOMInstance.browserWidget is None:
         slicer.util.selectModule('DICOM')
         slicer.util.selectModule('PedicleScrewSimulator')
+      # Make the DICOM browser disappear after loading data
+      slicer.modules.DICOMInstance.browserWidget.browserPersistent = False
       if not slicer.dicomDatabase or not slicer.dicomDatabase.isOpen:
         # Try to create a database with default settings
         slicer.modules.DICOMInstance.browserWidget.dicomBrowser.createNewDatabaseDirectory()
@@ -90,6 +92,8 @@ class LoadDataStep(PedicleScrewSimulatorStep):
       if slicer.modules.DICOMInstance.browserWidget is None:
         slicer.util.selectModule('DICOM')
         slicer.util.selectModule('PedicleScrewSimulator')
+      # Make the DICOM browser disappear after loading data
+      slicer.modules.DICOMInstance.browserWidget.browserPersistent = False
       slicer.app.layoutManager().setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutDicomBrowserView)
 
     def loadVolume(self):
