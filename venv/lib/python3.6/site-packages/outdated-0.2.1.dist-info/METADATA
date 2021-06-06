@@ -1,0 +1,86 @@
+Metadata-Version: 2.1
+Name: outdated
+Version: 0.2.1
+Summary: Check if a version of a PyPI package is outdated
+Home-page: http://github.com/alexmojaki/outdated
+Author: Alex Hall
+Author-email: alex.mojaki@gmail.com
+License: MIT
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development
+Description-Content-Type: text/markdown
+Requires-Dist: littleutils
+Requires-Dist: requests
+
+# outdated
+
+[![Build Status](https://travis-ci.org/alexmojaki/outdated.svg?branch=master)](https://travis-ci.org/alexmojaki/outdated) [![Coverage Status](https://coveralls.io/repos/github/alexmojaki/outdated/badge.svg?branch=master&uncache)](https://coveralls.io/github/alexmojaki/outdated?branch=master) [![Supports Python versions 2.7 and 3.5+](https://img.shields.io/pypi/pyversions/outdated.svg)](https://pypi.python.org/pypi/outdated)
+
+This is a mini-library which, given a package name and a version, checks if it's the latest version available on PyPI.
+
+To install:
+
+    pip install outdated
+
+## Quickstart:
+
+    from outdated import warn_if_outdated
+
+    warn_if_outdated('my-package-name', '1.2.3')
+
+This will:
+
+- Show a warning if the given version is not the latest. The warning includes the package name, the given version, and the latest version.
+- Perform the check in a background thread (so it doesn't delay anything)
+- Make at most one HTTP call (unless there is an HTTP error, in which case it will try 3 times) to the PyPI server for that specific package
+- Cache the result of the HTTP call on disk for 24 hours
+- Show a warning if any exception occurs during the check
+
+This will *not* check what version is currently installed, it will only use the given version. Library authors must make sure that the version in their `setup.py` matches the version here.
+
+The package name argument must be exactly the name used on PyPI, so that e.g. https://pypi.python.org/pypi/my-package-name is a valid URL.
+
+Optional arguments:
+
+- `background` (default `True`): run the check in a separate thread. Set to `False` to run immediately.
+- `raise_exceptions` (default: `False`): if `True`, allow exceptions to bubble to the top. Otherwise, show a warning including the exception message. If `background` is `True` and this is `True` then this will result in a full traceback showing but the process continuing.
+
+## Lower level API
+
+    from outdated import check_outdated
+
+    is_outdated, latest_version = check_outdated('my-package-name', '1.2.3')
+
+`is_outdated` is a boolean which is True if the given version is earlier than the latest version, which is the string `latest_version`.
+
+Optional arguments:
+
+- `repository_url` (default `https://pypi.python.org/pypi/%s/json`): a `%` style format string to use a different repository PyPI repository URL, e.g. test.pypi.org or a private repository. The string is formatted with the package name.
+
+This still makes the HTTP call with retries and caches the result on disk. It doesn't use a separate thread or emit any warnings (unless there is an exception specifically while using the cache, in which case the check will be done without the cache).
+
+## Additional configuration
+
+To disable all warnings from this library, set the environment variable `OUTDATED_IGNORE` to any non-empty value.
+
+To always raise exceptions instead of converting them to warnings (both in general in `warn_if_outdated` and more specifically when there's a caching problem) set the environment variable `OUTDATED_RAISE_EXCEPTION=1`.
+
+The warnings are also categorised so that you can easily control them with standard [warning filters](https://docs.python.org/3/library/warnings.html#the-warnings-filter). The classes are [here](https://github.com/alexmojaki/outdated/blob/master/outdated/mywarnings.py) and can be imported directly from the `outdated` module.
+
+## Performance
+
+This library works by fetching a URL such as [this](https://pypi.python.org/pypi/requests/json) - the time it takes to visit that link is essentially the speed of the library. This is much faster than the command `pip list --outdated` or any equivalent code.
+
+

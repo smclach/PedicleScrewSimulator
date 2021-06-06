@@ -1,0 +1,6 @@
+
+[tests]
+Django
+pandas>=0.24.2
+numpy>=1.16.3
+pytest
