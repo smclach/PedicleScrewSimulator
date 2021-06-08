@@ -1,0 +1,3 @@
+[console_scripts]
+birdseye = birdseye.server:main
+
