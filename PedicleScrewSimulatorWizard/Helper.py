@@ -176,7 +176,7 @@ class Helper( object ):
     return (colorArr)
 
   @staticmethod
-  def p2pexLine(pos1, pos2, plus=200, Dim=5.0, modName="", color="red", Visibility2D=True, Opacity=1):
+  def p2pexLine(pos1, pos2, plus=200, Dim=5.0, modName="", color="red", Visibility2D=True):
     # 点对点直线和延长线的坐标
     direction = (pos2 - pos1) / np.linalg.norm(pos2 - pos1)
     pos3 = pos1 + direction / np.linalg.norm(direction) * (plus + np.linalg.norm(pos2 - pos1))
@@ -193,9 +193,8 @@ class Helper( object ):
       dn.SetSelectedColor(Helper.myColor(color))
       # dn.SetSliceDisplayModeToProjection()
       dn.SetVisibility2D(Visibility2D)
-      dn.SetOpacity(Opacity)
       # Hide measurement result while markup up
-      # markupsNode.GetMeasurement('length').SetEnabled(False)
+      markupsNode.GetMeasurement('length').SetEnabled(True)
     return np.array(pos3)
 
   @staticmethod
@@ -208,7 +207,7 @@ class Helper( object ):
     lineNode.GetNthControlPointPositionWorld(1, lineEndP)
     length = lineNode.GetMeasurement('length').GetValue()
     dn = lineNode.GetDisplayNode()
-    Dim = dn.GetGlyphScale() / 10
+    Dim = dn.GetGlyphScale()/10
     return lineStartP, lineEndP,length,Dim
 
   @staticmethod
@@ -422,45 +421,76 @@ class Helper( object ):
     for i in range(fids):
       PA = Pa[i]  # 椎前点
       PZ = Pz[i]  # 最窄点
-      PA_PZ=np.linalg.norm(PA-PZ)
+      # PA_PZ=np.linalg.norm(PA-PZ)
       # boneP = Helper.sRayCast(Helper.p2pexLine(PA, PZ), PZ, "Bonetempt")  # 入骨点坐标
       boneP = Helper.probeVolume(PA, PZ)
-      PB_PZ = np.linalg.norm(PZ - boneP) #长度
-      Length=((PB_PZ+PA_PZ*.75)//5)*5 # 螺钉取整
-      x = (PA[0], PZ[1], PZ[2])
-      xy = (PA[0], PA[1], PZ[2])
-      y = (PZ[0], PA[1], PZ[2])
-      yz = (PZ[0], PA[1], PA[2])
-      SPA = Helper.p3Angle(x, PZ, xy)  # 冠状角(PSA)
-      TPA = Helper.p3Angle(y, PZ, yz)  # 矢状角(PTA)
-      Helper.p2pexLine(boneP, PZ, Length-PB_PZ, 3.5,"w_{0}_D:{1}_L".format(i,3.5), "blue",False,.1)
+      PA_PB = np.linalg.norm(PA - boneP) #长度
+      Length=(PA_PB//5-2)*5 # 螺钉取整
+      Dim = 3.5
+      Helper.p2pexLine(boneP, PA, Length-PA_PB, Dim,"w_{0}_D:{1}_L".format(i,Dim), "blue")
     return Data
 
   @staticmethod
+  def estimateDim(Pz, Pa, volumeName="baselineROI", minThread=150):
+    volume_node = slicer.util.getNode(volumeName)
+    voxels = slicer.util.arrayFromVolume(volume_node)
+    VVList = []
+    seg = 12
+    for ii in range(16):
+      i = 2 + ii*.5
+      cylName = "Cyl{}".format(str(i))
+      cyl = Helper.p2pCyl(Pa, Pz, i, cylName,1-np.linalg.norm(Pz-Pa),Seg=seg)
+      pzP = Helper.Pcoord(cylName)[2]
+      Helper.delNode(cylName)
+      for j in range(seg):
+        P = pzP[j * 2]
+        volumeRasToIjk = vtk.vtkMatrix4x4()
+        volume_node.GetRASToIJKMatrix(volumeRasToIjk)
+        point_Ijk = [0, 0, 0, 1]
+        volumeRasToIjk.MultiplyPoint(np.append(P, 1.0), point_Ijk)
+        point_Ijk = [int(round(c)) for c in point_Ijk[0:3]]
+        voxelValue = voxels[point_Ijk[2], point_Ijk[1], point_Ijk[0]]
+        # if voxelValue<150:
+        #   AddPoint(P)
+        if j == 0:
+          VVlist = np.array([voxelValue])
+        else:
+          VVlist = np.append(VVlist, voxelValue)
+      arrayV = np.array(VVlist).mean(0)
+      if arrayV < minThread:
+        return i - 1
+    return 3.5
+
+  @staticmethod
   # 调整螺钉的角度直径和长度
-  def Screw(No, Pz, sDim = 3.5, manulYN = False):
+  def Screw(No, Pz, sDim=0, manulYN = False):
     lineNode = "w_{}*".format(No)
     lineN = Helper.Psline(lineNode)
     PB0=lineN[0]
-    Helper.addFid(PB0,lableName="PB00")
+    # Helper.addFid(PB0,lableName="PB00")
     Pa = lineN[1]
+    # Dim = Helper.estimateDim(Pz, Pa)
     Lscrew = lineN[2]
     if manulYN is False:
       PB = PB0
       PT = Pa
       Helper.delNode(lineNode)
-      screwDim = np.around(sDim,1)
       B_T = np.linalg.norm(PB - PT)
-      Length = 5 * (B_T // 5 + 1) - B_T
+      Length = 5 * (B_T// 5) - B_T
+      if sDim == 0:
+        screwDim =  Helper.estimateDim(Pz, PT)
+      else:
+        screwDim = sDim
       Helper.p2pexLine(PB,PT,Length, screwDim,"w_{}_D:{}_L".format(No,screwDim),"red")
     else:
       PT = Pa
-      Helper.addFid(PB0, lableName="PB0")
+      # Helper.addFid(PB0, lableName="PB0")
       PB = Helper.probeVolume(PT,PB0)
-      logging.debug("PB:{}".format(PB))
-      logging.debug("PT:{}".format(PT))
+      # Helper.addFid(PB)
+      # logging.debug("PB:{}".format(PB))
+      # logging.debug("PT:{}".format(PT))
       B_T = np.linalg.norm(PB - PT)
-      Length =  5*(B_T//5+1)-B_T
+      Length =  5*(B_T//5)-B_T
       screwDim = np.around(lineN[3],1)
       Helper.delNode(lineNode)
       Helper.p2pexLine(PB,PT,Length, screwDim,"w_{}_D:{}_L".format(No,screwDim),"red")

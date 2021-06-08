@@ -42,9 +42,9 @@ class GradeStep(PedicleScrewSimulatorStep):
     ln = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLLayoutNode')
     ln.SetViewArrangement(slicer.vtkMRMLLayoutNode.SlicerLayoutConventionalPlotView)
 
-    modLabel = qt.QLabel('选择穿刺部位:')
+    modLabel = qt.QLabel('Choose the puncture site:')
     # Paint Screw Button
-    self.__selectScrewButton = qt.QPushButton("螺钉灰阶化")
+    self.__selectScrewButton = qt.QPushButton("Grade Screws")
     self.__layout.addWidget(self.__selectScrewButton)
     self.__selectScrewButton.connect('clicked(bool)', self.gradeScrews)
 
@@ -57,7 +57,7 @@ class GradeStep(PedicleScrewSimulatorStep):
     # self.screwTable.setRowCount(self.screwNumber)
 
     # Screw Table
-    horizontalHeaders = ["穿刺部位","螺钉\n 尺寸","角度\n TPA/SPA","% 螺钉于\n 软组织\n (<130HU)","% 螺钉于\n 松质骨\n (130-250HU)","% 螺钉于\n 皮质骨\n (>250HU)" ]
+    horizontalHeaders = ["puncture site","Screw\n Size","Angle\n TPA/SPA","% Screw in\nSoft Tissue\n (<130HU)","% Screw in\nLD Bone\n (130-250HU)","% Screw in\nHD Bone\n (>250HU)" ]
     self.screwTable = qt.QTableWidget(self.screwNumber, 6)
     self.screwTable.sortingEnabled = False
     self.screwTable.setEditTriggers(1)
@@ -121,7 +121,7 @@ class GradeStep(PedicleScrewSimulatorStep):
       self.itemsLD.append(qtscrewLD)
       self.itemsAng.append(qtscrewAng)
       #self.itemsDia.append(qtscrewDia)
-      self.screwName.append("Screw_{}".format(self.screwLoc))
+      self.screwName.append("Isthmus_Screw_{}".format(self.screwLoc))
 
     # logging.debug(self.screwName)
       logging.debug("self.screwName:{}".format(self.screwName))
@@ -324,22 +324,22 @@ class GradeStep(PedicleScrewSimulatorStep):
     # Retrieve/Create plot chart#检索/创建图
     plotChartNode = plotViewNode.GetPlotChartNode()
     if not plotChartNode:
-      plotChartNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLPlotChartNode", "Screw - Bone Contact chart")
+      plotChartNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLPlotChartNode", "Isthmus_Screw - Bone Contact chart")
       plotViewNode.SetPlotChartNodeID(plotChartNode.GetID())
     plotChartNode.SetTitle("Screw - Bone Contact")
-    plotChartNode.SetXAxisTitle('Screw Percentile (Head - Tip)')
+    plotChartNode.SetXAxisTitle('Isthmus_Screw Percentile Length')
     plotChartNode.SetYAxisTitle('Average HU Contact')
 
     # Retrieve/Create plot table#检索/创建表
     firstPlotSeries = plotChartNode.GetNthPlotSeriesNode(0)
     plotTableNode = firstPlotSeries.GetTableNode() if firstPlotSeries else None
     if not plotTableNode:
-      plotTableNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode", "Screw - Bone Contact table")
+      plotTableNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode", "Isthmus_Screw - Bone Contact table")
 
     # Set x, cortical bone, and cancellous bone columns#设置x、皮质骨和松质骨柱分界线
     plotTableNode.RemoveAllColumns()
     arrX = vtk.vtkFloatArray()
-    arrX.SetName("Screw Percentile")
+    arrX.SetName("Isthmus_Screw Length")
     plotTableNode.AddColumn(arrX)
     arrCortical = vtk.vtkFloatArray()
     arrCortical.SetName("Cortical Bone")

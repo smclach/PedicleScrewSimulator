@@ -8,8 +8,8 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
 
   def __init__( self, stepid ):
     self.initialize( stepid )
-    self.setName( '2. 定义关注区(ROI)' )
-    self.setDescription( """步骤：\n  1、定义ROI\n  2、选择起始椎体和# 左右及节段数或者部位""" )
+    self.setName( '2. Define Surgical Region of Interest (ROI)' )
+    self.setDescription( """Steps:\n  1. Define ROI (click and drag dotted colour box)\n  2. Select starting vertebrae and # to instrument""" )
 
     self.__parent = super( DefineROIStep, self )
 
@@ -37,116 +37,127 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
 
   def createUserInterface( self ):
 
-      self.__layout = self.__parent.createUserInterface()
-      
-      vText = qt.QLabel("起始节段:")
-      iText = qt.QLabel("# 椎体个数:")
-      sText = qt.QLabel("# 左右：")
-      # aText = qt.QLabel("Approach Direction:")
-      self.vSelector = qt.QComboBox()
-      self.vSelector.setMaximumWidth(120)
-      self.levels = ("C1","C2","C3","C4","C5","C6","C7","T1","T2","T3","T4","T5","T6","T7","T8","T9","T10","T11","T12","L1", "L2", "L3", "L4", "L5","S1", "部位")
-      self.vSelector.addItems(self.levels)
-      self.iSelector = qt.QComboBox()
-      self.iSelector.setMaximumWidth(120)
-      self.iSelector.addItems(['1','2','3','4','5','6','7','8','9','10','11','12'])
-      self.sSelector = qt.QComboBox()
-      self.sSelector.setMaximumWidth(120)
-      self.sides = ("左右", "左侧", "右侧", "--")
-      self.sSelector.addItems(self.sides)
+    self.__layout = self.__parent.createUserInterface()
 
-      blank = qt.QLabel("  ")
-      blank.setMaximumWidth(30)
-      
-      self.vertebraeGridBox = qt.QGridLayout()
-      self.vertebraeGridBox.addWidget(vText,0,0)
-      self.vertebraeGridBox.addWidget(self.vSelector,1,0)
-      self.vertebraeGridBox.addWidget(blank,0,1)
-      self.vertebraeGridBox.addWidget(iText,0,2)
-      self.vertebraeGridBox.addWidget(blank,1,1)
-      self.vertebraeGridBox.addWidget(self.iSelector,1,2)
-      self.vertebraeGridBox.addWidget(blank,0,3)
-      self.vertebraeGridBox.addWidget(sText,0,4)
-      self.vertebraeGridBox.addWidget(blank,1,3)
-      self.vertebraeGridBox.addWidget(self.sSelector,1,4)
-      # self.screwcylGridBox.addWidget(aText,0,4)
-      self.vertebraeGridBox.addWidget(blank,1,5)
-      # self.screwcylGridBox.addWidget(self.aSelector,1,4)
-      self.__layout.addRow(self.vertebraeGridBox)
-      
-      #self.__layout.addRow("Starting Instrumented Vertebra:",self.vSelector)
-      #self.__layout.addRow("Number of Vertebrae to Instrument:",self.iSelector)
+    vText = qt.QLabel("1st Instrumented Level:")
+    sText = qt.QLabel("# Sides：")
+    iText = qt.QLabel("# to Instrument:")
+    aText = qt.QLabel("Approach Direction:")
+    self.vSelector = qt.QComboBox()
+    self.vSelector.setMaximumWidth(120)
+    self.levels = ("C1","C2","C3","C4","C5","C6","C7","T1","T2","T3","T4","T5","T6","T7","T8","T9","T10","T11","T12","L1", "L2", "L3", "L4", "L5","S1")
+    self.vSelector.addItems(self.levels)
+    self.sSelector = qt.QComboBox()
+    self.sSelector.setMaximumWidth(120)
+    self.sides = ("L&R", "Left", "Right", "--")
+    self.sSelector.addItems(self.sides)
+    self.iSelector = qt.QComboBox()
+    self.iSelector.setMaximumWidth(120)
+    self.iSelector.addItems(['1','2','3','4','5','6','7','8','9','10','11','12'])
+    self.aSelector = qt.QComboBox()
+    self.aSelector.setMaximumWidth(120)
+    self.aSelector.addItems(['Posterior','Anterior','Left','Right'])
+    blank = qt.QLabel("  ")
+    blank.setMaximumWidth(30)
+    #self.__layout.addWidget(vText)
+    #self.__layout.addWidget(self.vSelector)
+    #self.__layout.addWidget(iText)
+    #self.__layout.addWidget(self.iSelector)
 
-      # Hide ROI Details
-      roiCollapsibleButton = ctk.ctkCollapsibleButton()
-      #roiCollapsibleButton.setMaximumWidth(320)
-      roiCollapsibleButton.text = "关注区调整"
-      self.__layout.addWidget(roiCollapsibleButton)
-      roiCollapsibleButton.collapsed = True
+    self.vertebraeGridBox = qt.QGridLayout()
+    self.vertebraeGridBox.addWidget(vText,0,0)
+    self.vertebraeGridBox.addWidget(self.vSelector,1,0)
+    self.vertebraeGridBox.addWidget(blank,0,1)
+    self.vertebraeGridBox.addWidget(sText,0,2)
+    self.vertebraeGridBox.addWidget(blank,1,1)
+    self.vertebraeGridBox.addWidget(self.sSelector,1,2)
+    self.vertebraeGridBox.addWidget(blank,0,3)
+    self.vertebraeGridBox.addWidget(iText,0,4)
+    self.vertebraeGridBox.addWidget(blank,1,3)
+    self.vertebraeGridBox.addWidget(self.iSelector,1,4)
+    self.vertebraeGridBox.addWidget(blank,0,5)
+    self.vertebraeGridBox.addWidget(aText,0,6)
+    self.vertebraeGridBox.addWidget(blank,1,5)
+    self.vertebraeGridBox.addWidget(self.aSelector,1,6)
+    self.__layout.addRow(self.vertebraeGridBox)
 
-      # Layout
-      roiLayout = qt.QFormLayout(roiCollapsibleButton)
+    #self.__layout.addRow("Starting Instrumented Vertebra:",self.vSelector)
+    #self.__layout.addRow("Number of Vertebrae to Instrument:",self.iSelector)
 
-      #label for ROI selector
-      roiLabel = qt.QLabel( '选择关注区ROI:' )
-      font = roiLabel.font
-      font.setBold(True)
-      roiLabel.setFont(font)
-      
-      
-      #creates combobox and populates it with all vtkMRMLAnnotationROINodes in the scene
-      self.__roiSelector = slicer.qMRMLNodeComboBox()
-      self.__roiSelector.nodeTypes = ['vtkMRMLAnnotationROINode']
-      self.__roiSelector.toolTip = "定义关注区"
-      self.__roiSelector.setMRMLScene(slicer.mrmlScene)
-      self.__roiSelector.addEnabled = 1
-      
-      #add label + combobox
-      roiLayout.addRow( roiLabel, self.__roiSelector )
+    # Hide ROI Details
+    roiCollapsibleButton = ctk.ctkCollapsibleButton()
+    #roiCollapsibleButton.setMaximumWidth(320)
+    roiCollapsibleButton.text = "ROI Details"
+    self.__layout.addWidget(roiCollapsibleButton)
+    roiCollapsibleButton.collapsed = True
 
-      self.__roiSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onROIChanged)
+    # Layout
+    roiLayout = qt.QFormLayout(roiCollapsibleButton)
 
-      # the ROI parameters
-      # GroupBox to hold ROI Widget
-      voiGroupBox = qt.QGroupBox()
-      voiGroupBox.setTitle( '定义关注区:' )
-      roiLayout.addRow( voiGroupBox )
-      
-      # create form layout for GroupBox
-      voiGroupBoxLayout = qt.QFormLayout( voiGroupBox )
-      
-      # create ROI Widget and add it to the form layout of the GroupBox
-      self.__roiWidget = PythonQt.qSlicerAnnotationsModuleWidgets.qMRMLAnnotationROIWidget()
-      voiGroupBoxLayout.addRow( self.__roiWidget )
-    #   # 生成关注区按钮
-    #   self.baseBotton = qt.QPushButton("生成关注卷")
-    #   self.baseBotton.connect('clicked(bool)', self.creatBaselinevolume)
-    #   self.__layout.addWidget(self.baseBotton)
-    # #Active Volume text
-    #   self.activeText = qt.QLabel("当前图卷:")
-    #   self.__layout.addRow(self.activeText)
-
-    #   #select volume
-    #   #creates combobox and populates it with all vtkMRMLScalarVolumeNodes(标量体数据节点) in the scene
-    #   # 生成combobox并以当前场景所有vtkMRMLScalarVolumeNodes(标量体数据节点)为选择项
-    #   self.__inputSelector = slicer.qMRMLNodeComboBox()
-    #   self.__inputSelector.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
-    #   self.__inputSelector.addEnabled = False
-    #   self.__inputSelector.removeEnabled = False
-    #   self.__inputSelector.setMRMLScene( slicer.mrmlScene )
-    #   self.__layout.addRow(self.__inputSelector )
-
-      # self.updateWidgetFromParameters(self.parameterNode())    
+    #label for ROI selector
+    roiLabel = qt.QLabel( 'Select ROI:' )
+    font = roiLabel.font
+    font.setBold(True)
+    roiLabel.setFont(font)
 
 
-      # self.updateWidgetFromParameters(self.parameterNode())
-      qt.QTimer.singleShot(0, self.killButton)
+    #creates combobox and populates it with all vtkMRMLAnnotationROINodes in the scene
+    self.__roiSelector = slicer.qMRMLNodeComboBox()
+    self.__roiSelector.nodeTypes = ['vtkMRMLAnnotationROINode']
+    self.__roiSelector.toolTip = "ROI defining the structure of interest"
+    self.__roiSelector.setMRMLScene(slicer.mrmlScene)
+    self.__roiSelector.addEnabled = 1
 
-      
-    #called when ROI bounding box is altered)
+    #add label + combobox
+    roiLayout.addRow( roiLabel, self.__roiSelector )
+
+    self.__roiSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onROIChanged)
+
+    # the ROI parameters
+    # GroupBox to hold ROI Widget
+    voiGroupBox = qt.QGroupBox()
+    voiGroupBox.setTitle( 'Define VOI' )
+    roiLayout.addRow( voiGroupBox )
+
+    # create form layout for GroupBox
+    voiGroupBoxLayout = qt.QFormLayout( voiGroupBox )
+
+    # create ROI Widget and add it to the form layout of the GroupBox
+    self.__roiWidget = PythonQt.qSlicerAnnotationsModuleWidgets.qMRMLAnnotationROIWidget()
+    voiGroupBoxLayout.addRow( self.__roiWidget )
+
+    # # Hide VR Details
+    # vrCollapsibleButton = ctk.ctkCollapsibleButton()
+    # #roiCollapsibleButton.setMaximumWidth(320)
+    # vrCollapsibleButton.text = "Rendering Details"
+    # self.__layout.addWidget(vrCollapsibleButton)
+    # vrCollapsibleButton.collapsed = True
+
+    # # Layout
+    # vrLayout = qt.QFormLayout(vrCollapsibleButton)
+
+    # # the ROI parameters
+    # # GroupBox to hold ROI Widget
+    # vrGroupBox = qt.QGroupBox()
+    # vrGroupBox.setTitle( 'Define Rendering' )
+    # vrLayout.addRow( vrGroupBox )
+
+    # # create form layout for GroupBox
+    # vrGroupBoxLayout = qt.QFormLayout( vrGroupBox )
+
+    # # create ROI Widget and add it to the form layout of the GroupBox
+    # self.__vrWidget = PythonQt.qSlicerVolumeRenderingModuleWidgets.qSlicerPresetComboBox()
+    # #self.__vrWidget = PythonQt.qSlicerVolumeRenderingModuleWidgets.qMRMLVolumePropertyNodeWidget()
+    # vrGroupBoxLayout.addRow( self.__vrWidget )
+
+    # # initialize VR
+    # self.__vrLogic = slicer.modules.volumerendering.logic()
+
+    # self.updateWidgetFromParameters(self.parameterNode())
+    qt.QTimer.singleShot(0, self.killButton)
 
 
-    #called when ROI bounding box is altered
+  #called when ROI bounding box is altered
   def onROIChanged(self):
     #read ROI node from combobox
     roi = self.__roiSelector.currentNode()
@@ -486,9 +497,9 @@ class DefineROIStep( PedicleScrewSimulatorStep ) :
     pNode = self.parameterNode()
 
     pNode.SetParameter('vertebra', self.vSelector.currentText)
-    pNode.SetParameter('inst_length', self.iSelector.currentText)
     pNode.SetParameter('sides', self.sSelector.currentText)
-    # pNode.SetParameter('approach', self.aSelector.currentText)
+    pNode.SetParameter('inst_length', self.iSelector.currentText)
+    pNode.SetParameter('approach', self.aSelector.currentText)
 
     cropVolumeNode = slicer.vtkMRMLCropVolumeParametersNode()
     cropVolumeNode.SetScene(slicer.mrmlScene)

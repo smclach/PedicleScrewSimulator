@@ -13,15 +13,15 @@ class LandmarksStep(PedicleScrewSimulatorStep):
 
   def __init__(self, stepid):
     self.initialize(stepid)
-    self.setName('3. 放置入皮点及靶点')
-    self.setDescription('放置入皮点和靶点,椎弓根三点选择时，先选择椎前点，其他则注意先放置入皮点')
+    self.setName('3. Place the Landmarks')
+    self.setDescription("Place **the Vertebral Anterior Point (VAP)** and **the Pedkcle Isthmus Point(PIP)** for each level")
 
     self.__parent = super(LandmarksStep, self)
     qt.QTimer.singleShot(0, self.killButton)
     self.levels = (
       "C1", "C2", "C3", "C4", "C5", "C6", "C7", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11",
       "T12",
-      "L1", "L2", "L3", "L4", "L5", "S1", "部位")
+      "L1", "L2", "L3", "L4", "L5", "S1") #, "部位")
     self.startCount = 0
     self.addCount = 0
     self.adjustCount = 0
@@ -160,21 +160,21 @@ class LandmarksStep(PedicleScrewSimulatorStep):
 
   def zoomIn(self):
     logging.debug("zoom")
-    slicer.app.applicationLogic().PropagateVolumeSelection(1)
+    slicer.app.applicationLogic().PropagateVolumeSelection(2)
 
   def makeFidAdjustments(self):
     if self.adjustCount == 0:
       fidNode = self.fiducialNode()
       slicer.modules.markups.logic().SetAllMarkupsLocked(fidNode,False)
       self.adjustCount = 1
-      self.adjustFiducials.setText("锁定点")
+      self.adjustFiducials.setText("Lock Points")
       if self.measureCount == 1:
         self.startMeasure()
     elif self.adjustCount == 1:
       fidNode = self.fiducialNode()
       slicer.modules.markups.logic().SetAllMarkupsLocked(fidNode,True)
       self.adjustCount = 0
-      self.adjustFiducials.setText("调节点")
+      self.adjustFiducials.setText("Adjust Points")
 
   def crosshairVisible(self):
     if self.adjustCount2 == 0:
@@ -184,7 +184,7 @@ class LandmarksStep(PedicleScrewSimulatorStep):
         viewNode.SetSliceIntersectionVisibility(0)
 
       self.adjustCount2 = 1
-      self.crosshair.setText("显示十字标")
+      self.crosshair.setText("Show Crosshair")
 
     elif self.adjustCount2 == 1:
       # Enable Slice Intersections
@@ -193,7 +193,7 @@ class LandmarksStep(PedicleScrewSimulatorStep):
         viewNode.SetSliceIntersectionVisibility(1)
 
       self.adjustCount2 = 0
-      self.crosshair.setText("隐藏十字标")
+      self.crosshair.setText("Hide Crosshair")
   def createUserInterface(self):
     markup = slicer.modules.markups.logic()
     markup.AddNewFiducialNode()
@@ -229,40 +229,40 @@ class LandmarksStep(PedicleScrewSimulatorStep):
     self.table2.setMinimumWidth(400)
     self.table2.setMinimumHeight(215)
     self.table2.setMaximumHeight(215)
-    horizontalHeaders = ["Fiducial", "节段\左右\源点/靶点"]
+    horizontalHeaders = ["Fiducial", "Level\Side\Landmarks"]
     self.table2.setHorizontalHeaderLabels(horizontalHeaders)
     self.table2.itemSelectionChanged.connect(self.onTableCellClicked)
     self.__layout.addWidget(self.table2)
 
-    self.deleteFid = qt.QPushButton("删除所选点")
+    self.deleteFid = qt.QPushButton("Remove Selected Fiducial")
     self.deleteFid.connect('clicked(bool)', self.deleteFiducial)
     self.__layout.addWidget(self.deleteFid)
     self.oldPosition = 0
 
     # 就是在这里加个位置选择选择
-    aText = qt.QLabel("体位:")
+    aText = qt.QLabel("Camera:")
     self.aSelector = qt.QComboBox()
     # self.aSelector.setMaximumWidth(120)
-    self.aSelector.addItems(["俯卧", "仰卧", "右侧卧", "左侧卧"])
+    self.aSelector.addItems(["Posterior", "Anterior", "Right", "Left"])
     self.__layout.addRow(aText)
     self.__layout.addRow(self.aSelector)
 
     reconCollapsibleButton = ctk.ctkCollapsibleButton()
-    reconCollapsibleButton.text = "调整切片角度"
+    reconCollapsibleButton.text = "Change Slice Reconstruction"
     self.__layout.addWidget(reconCollapsibleButton)
     reconCollapsibleButton.collapsed = True
     # Layout
     reconLayout = qt.QFormLayout(reconCollapsibleButton)
 
     # label for ROI selector
-    reconLabel = qt.QLabel('切片选择:')
-    rotationLabel = qt.QLabel('旋转角度:')
+    reconLabel = qt.QLabel('Recon Slice:')
+    rotationLabel = qt.QLabel('Rotation Angle:')
 
     # creates combobox and populates it with all vtkMRMLAnnotationROINodes
     # in the scene
     self.selector = slicer.qMRMLNodeComboBox()
     self.selector.nodeTypes = ['vtkMRMLSliceNode']
-    self.selector.toolTip = "调整切片角度"
+    self.selector.toolTip = "Change Slice Reconstruction"
     self.selector.setMRMLScene(slicer.mrmlScene)
     self.selector.addEnabled = 1
 
@@ -334,11 +334,11 @@ class LandmarksStep(PedicleScrewSimulatorStep):
       self.zoomIn()
 
     self.vertebra = str(pNode.GetParameter('vertebra'))
-    logging.debug("椎体")
+    # logging.debug("椎体")
     logging.debug(self.vertebra)
     self.inst_length = str(pNode.GetParameter('inst_length'))
     self.sides = str(pNode.GetParameter('sides'))
-    logging.debug("这里")
+    # logging.debug("这里")
     logging.debug(self.sides)
     # self.approach = str(pNode.GetParameter('approach'))
     self.croppedBaselineVolumeID = str(pNode.GetParameter('croppedBaselineVolumeID'))
@@ -346,19 +346,19 @@ class LandmarksStep(PedicleScrewSimulatorStep):
     for i in range(self.levels.index(self.vertebra), self.levels.index(self.vertebra) + int(self.inst_length)):
       # logging.debug(self.levels[i])
       # self.levelselection.append(self.levels[i])
-      if self.vertebra == "部位":
-        self.fiduciallist.append(self.vertebra + "_" + str(i) + "/--/入皮点")
-        self.fiduciallist.append(self.vertebra + "_" + str(i) + "/--/靶点")
-      else:
-        if self.sides == "左右":
-          self.fiduciallist.append(self.levels[i] + "/-" + "/椎前点")
-          self.fiduciallist.append(self.levels[i] + "/左" + "/最窄点")
-          self.fiduciallist.append(self.levels[i] + "/右" + "/最窄点")
+      # if self.vertebra == "部位":
+      #   self.fiduciallist.append(self.vertebra + "_" + str(i) + "/--/入皮点")
+      #   self.fiduciallist.append(self.vertebra + "_" + str(i) + "/--/靶点")
+      # else:
+      if self.sides == "L&R":
+        self.fiduciallist.append(self.levels[i] + "/-" + "/VAP")
+        self.fiduciallist.append(self.levels[i] + "/Left" + "/PIP")
+        self.fiduciallist.append(self.levels[i] + "/Right" + "/PIP")
 
-        else:
-          self.fiduciallist.append(self.levels[i] + "/" + self.sides + "/入皮点")
-          self.fiduciallist.append(self.levels[i] + "/" + self.sides + "/靶点")
-    logging.debug("Fiducial list: {0}".format(self.fiduciallist))
+      else:
+        self.fiduciallist.append(self.levels[i] + "/" + self.sides + "/Entry")
+        self.fiduciallist.append(self.levels[i] + "/" + self.sides + "/target")
+    # logging.debug("Fiducial list: {0}".format(self.fiduciallist))
 
     # logging.debug(self.screwAng)
     self.fidNode = slicer.mrmlScene.GetFirstNodeByName("T")
@@ -390,7 +390,7 @@ class LandmarksStep(PedicleScrewSimulatorStep):
     self.progress.setMinimumWidth(500)
     self.progress.setWindowModality(2)
 
-    self.progress.setLabelText('计算部分数据...')
+    self.progress.setLabelText('Calculation...')
     slicer.app.processEvents(qt.QEventLoop.ExcludeUserInputEvents)
     self.progress.repaint()
 

@@ -8,14 +8,14 @@ class LoadDataStep(PedicleScrewSimulatorStep):
 
     def __init__( self, stepid ):
       self.initialize( stepid )
-      self.setName( '1. 加载图卷' )
-      self.setDescription( "’加载图卷‘到当前场景。点击‘从DICOM加载CT’以打开DICOM浏览窗口。‘加载其他文件’导入其他格式，如 .nrrd.Load a volume into the scene. Click 'Load spine CT from DICOM' to open the DICOM browser window. Click 'Load spine CT from other file' to import other file types, including .nrrd" )
+      self.setName( '1. Load Image Volume' )
+      self.setDescription( "Load a volume into the scene. Click 'Load spine CT from DICOM' to open the DICOM browser window. Click 'Load spine CT from other file' to import other file types, including .nrrd" )
 
       self.__parent = super( LoadDataStep, self )
 
     def killButton(self):
       # hide useless button
-      bl = slicer.util.findChildren(text='结束')
+      bl = slicer.util.findChildren(text='Final')
       if len(bl):
         bl[0].hide()
 
@@ -24,27 +24,27 @@ class LoadDataStep(PedicleScrewSimulatorStep):
       self.__layout = self.__parent.createUserInterface()
 
       #import DICOM folder button
-      self.__importDICOMBrowser = qt.QPushButton("导入DICOM文件夹")
+      self.__importDICOMBrowser = qt.QPushButton("Import DICOM folder")
       self.__layout.addRow(self.__importDICOMBrowser)
       self.__importDICOMBrowser.connect('clicked(bool)', self.importDICOMBrowser)
 
       #show DICOM browser button
-      self.__showDICOMBrowserButton = qt.QPushButton("打开DICOM浏览")
+      self.__showDICOMBrowserButton = qt.QPushButton("Show DICOM browser")
       self.__layout.addRow(self.__showDICOMBrowserButton)
       self.__showDICOMBrowserButton.connect('clicked(bool)', self.showDICOMBrowser)
 
       #open load data dialog for adding nrrd files
-      self.__loadScrewButton = qt.QPushButton("加载其他文件")
+      self.__loadScrewButton = qt.QPushButton("Load spine CT from other file")
       self.__layout.addRow(self.__loadScrewButton)
       self.__loadScrewButton.connect('clicked(bool)', self.loadVolume)
 
       #load sample data
-      self.__loadSampleCtDataButton = qt.QPushButton("加载示范文件")
+      self.__loadSampleCtDataButton = qt.QPushButton("Load sample spine CT")
       self.__layout.addRow(self.__loadSampleCtDataButton)
       self.__loadSampleCtDataButton.connect('clicked(bool)', self.loadSampleVolume)
 
       #Active Volume text
-      self.activeText = qt.QLabel("当前图卷:")
+      self.activeText = qt.QLabel("Spine CT:")
       self.__layout.addRow(self.activeText)
 
       #select volume

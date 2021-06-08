@@ -18,8 +18,8 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
   def __init__( self, stepid ):
     self.initialize( stepid )
     slicer.util.setDataProbeVisible(False)
-    self.setName('4. 调节螺钉的角度和尺寸')
-    self.setDescription("""选择穿刺部位;\n在Red Slice或Yellow Slice里选择螺钉拖动调节角度和长度,手动更新;\n或者选择(+/-)按钮调节;\n达到理想尺寸和角度后,"确定"生成螺钉""")
+    self.setName('4. Adjust Screws')
+    self.setDescription("""Select a screw;\nIn the Red Slice or the Yellow Slice, Drag both ends of the analog screw to adjust the length and angle;\nUpdata;\nSelect the Diameter of the screw";\nAfter reaching the ideal size and angle,Click OK Generate the Screw""")
     self.fidlist = []
     self.dimeter = []
     self.length = []
@@ -29,7 +29,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
     self.levels = (
       "C1", "C2", "C3", "C4", "C5", "C6", "C7", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11",
       "T12",
-      "L1", "L2", "L3", "L4", "L5", "S1", "部位")
+      "L1", "L2", "L3", "L4", "L5", "S1") #, "部位")
     self.buttonToModName = ''
 
     self.__parent = super( MeasurementsStep, self )
@@ -67,7 +67,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
     self.fid = Helper.Screws()
 
     self.fids = len(self.fid)
-    self.fidlist = ["选择穿刺部位"]
+    self.fidlist = ["Choose the puncture site"]
     self.dimeter = []
     self.length = []
     self.PSA = []
@@ -81,42 +81,42 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
     self.screwList=[]
     self.manulYn=0
 
-    logging.debug("fids: {0}".format(self.fids))
+    # logging.debug("fids: {0}".format(self.fids))
     # zheli
     pNode = self.parameterNode()
     print(pNode)
     self.vertebra = str(pNode.GetParameter('vertebra'))
-    logging.debug("椎体")
+    # logging.debug("椎体")
     logging.debug(self.vertebra)
     self.inst_length = str(pNode.GetParameter('inst_length'))
     self.sides = str(pNode.GetParameter('sides'))
 
     for i in range(self.levels.index(self.vertebra), self.levels.index(self.vertebra) + int(self.inst_length)):
-      if self.vertebra == "部位":
-        self.fidlist.append(self.vertebra + "_" + str(i))
+      # if self.vertebra == "部位":
+      #   self.fidlist.append(self.vertebra + "_" + str(i))
+      # else:
+      if self.sides == "L&R":
+        self.fidlist.append(self.levels[i] + "_" + "L")
+        self.fidlist.append(self.levels[i] + "_" + "R")
       else:
-        if self.sides == "左右":
-          self.fidlist.append(self.levels[i] + "_" + "L")
-          self.fidlist.append(self.levels[i] + "_" + "R")
-        else:
-          self.fidlist.append(self.levels[i] + "_" + self.sides)
+        self.fidlist.append(self.levels[i] + "_" + self.sides)
     for i, v in enumerate(self.fidlist[1:]):
       Helper.addFid(self.fid[i][1],1,"Isthmus-{}".format(i),v,"pink")
 
     logging.debug("Fidlist: {0}".format(self.fidlist))
     logging.debug(self.fidlist[0])
-    sText = qt.QLabel('选择穿刺部位:')
+    sText = qt.QLabel('Choose the puncture site:')
     self.sSelector = ctk.ctkComboBox()
-    self.sSelector.toolTip = "选择穿刺部位"
+    self.sSelector.toolTip = "Choose the puncture site"
     # screwList = ['选择穿刺部位', "cS1","cS2","cS3","cS4","cS5"]
     self.sSelector.addItems(self.fidlist)
     self.connect(self.sSelector, PythonQt.QtCore.SIGNAL('activated(QString)'), self.sSelector_chosen)
     self.__sSelector=''
 
-    dText = qt.QLabel('选择螺钉直径:')
+    dText = qt.QLabel('Select screw diameter:')
     self.dSelector = ctk.ctkComboBox()
-    self.dSelector.toolTip = "选择螺钉直径"
-    dimList = ['选择螺钉直径mm', "2.5","3","3.5","4","4.5","5","5.5","6","6.5","7","7.5","8"]
+    self.dSelector.toolTip = "Select screw diameter"
+    dimList = ['Select screw diametermm', "2.5","3","3.5","4","4.5","5","5.5","6","6.5","7","7.5","8"]
     self.dSelector.addItems(dimList)
     self.connect(self.dSelector, PythonQt.QtCore.SIGNAL('activated(QString)'), self.dSelector_chosen)
     self.__dSelector=''
@@ -127,9 +127,9 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
     self.QHBox0.addWidget(self.dSelector)
     self.__layout.addRow(self.QHBox0)
 
-    self.manButton = qt.QPushButton("手动更新")
-    self.okButton = qt.QPushButton("确定")
-    self.resetButton = qt.QPushButton("重置")
+    self.manButton = qt.QPushButton("Update")
+    self.okButton = qt.QPushButton("OK")
+    self.resetButton = qt.QPushButton("Reset")
 
     self.QHBox9 = qt.QHBoxLayout()
     self.QHBox9.addWidget(self.manButton)
@@ -149,7 +149,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
     # Camera Transform Sliders
 
     transCam = ctk.ctkCollapsibleButton()
-    transCam.text = "调整相机位置"
+    transCam.text = "Shift Camera Position"
     transCam.collapsed = True
     self.__layout.addWidget(transCam)
     # transCam.collapsed = True
@@ -170,7 +170,7 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
 
   def sSelector_chosen(self, text):
 
-    if text != "选择穿刺部位":
+    if text != "Choose the puncture site":
       self.__sSelector = text
       self.__dSelector = ''
       self.currentFidIndex = self.sSelector.currentIndex-1
@@ -183,7 +183,8 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       self.cScrewData=Helper.Screw(self.currentFidIndex,self.Pz)
       currentMod = slicer.util.getNode(self.currentmodName)
       modelDisplay = currentMod.GetDisplayNode()
-      modelDisplay.SetSelectedColor(Helper.myColor("red"))  # yellow
+      modelDisplay.SetSelectedColor(Helper.myColor("red"))
+      modelDisplay.SetVisibility2D(True)  # yellow
       # logging.debug("这里{0}{1}".format([self.Pa[0],self.Pa[1],self.Pz[2]],self.Pa))
       self.redSlicerData=   [self.Pz,self.Pa,[self.Pz[0],self.Pa[1],self.Pa[2]]]
       self.yellowSlicerData=[self.Pz,self.Pa,[self.Pa[0],self.Pa[1],self.Pz[2]]]
@@ -197,13 +198,13 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
 
   def dSelector_chosen(self, text):
 
-    if text != "选择螺钉直径":
+    if text != "Select the diameter of the screw":
       self.__dSelector = float(text)
       self.Cdata = Helper.Screw(self.currentFidIndex, self.Pz, self.__dSelector)
       logging.debug("self.currentFidIndex:{}".format(self.currentFidIndex))
 
   def manualUp(self):
-    self.Cdata = Helper.Screw(self.currentFidIndex, self.Pz, 0, True)
+    self.Cdata = Helper.Screw(self.currentFidIndex, self.Pz,manulYN =True)
     logging.debug("self.currentFidIndex:{}".format(self.currentFidIndex))
 
   def okShow(self):
@@ -238,11 +239,9 @@ class MeasurementsStep( PedicleScrewSimulatorStep ):
       self.screwList.append([self.__sSelector, 90-screwAngle[0],screwAngle[1],self.Cdata[0], self.Cdata[1], self.Cdata[2], self.Cdata[3],self.Pz])
 
   def reset(self):
-    PB0 = self.cScrewData[4]
-    PT0 = self.cScrewData[5]
-    B_T = np.linalg.norm(PB0 - PT0)
-    Helper.delNode("w_{}*".format(self.currentFidIndex))
-    Helper.p2pexLine(PB0, PT0, 35 - B_T,3.5 , "w_{0}_D:3._L".format(self.currentFidIndex), "red")
+    self.Pz = self.CData[1]
+    self.Pa = self.CData[0]
+    self.cScrewData = Helper.Screw(self.currentFidIndex, self.Pz)
     # pass
 
   def validate( self, desiredBranchId ):
