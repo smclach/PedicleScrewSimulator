@@ -22,7 +22,8 @@ class PedicleScrewSimulator(ScriptedLoadableModule):
     self.parent.dependencies = []
     self.parent.contributors = ["Brendan Polley (University of Toronto)",
       "Stewart McLachlin (Sunnybrook Research Institute)",
-      "Cari Whyne (Sunnybrook Research Institute)"]
+      "Cari Whyne (Sunnybrook Research Institute)",
+      "Jumbo Jing"]
     self.parent.helpText = """
 Pedicle Screw Simulator. See more details here: https://github.com/smclach/PedicleScrewSimulator
 """
@@ -54,7 +55,7 @@ class PedicleScrewSimulatorWidget(ScriptedLoadableModuleWidget):
     self.defineROIStep = PedicleScrewSimulatorWizard.DefineROIStep( 'DefineROI'  )
     self.measurementsStep = PedicleScrewSimulatorWizard.MeasurementsStep( 'Measurements'  )
     self.landmarksStep = PedicleScrewSimulatorWizard.LandmarksStep( 'Landmarks' )
-    self.screwStep = PedicleScrewSimulatorWizard.ScrewStep( 'Screw' )
+    # self.screwStep = PedicleScrewSimulatorWizard.ScrewStep( 'Screw' )
     self.gradeStep = PedicleScrewSimulatorWizard.GradeStep( 'Grade' )
     self.endStep = PedicleScrewSimulatorWizard.EndStep( 'Final'  )
     
@@ -65,7 +66,7 @@ class PedicleScrewSimulatorWidget(ScriptedLoadableModuleWidget):
     allSteps.append( self.defineROIStep )
     allSteps.append( self.landmarksStep)
     allSteps.append( self.measurementsStep )
-    allSteps.append( self.screwStep)
+    # allSteps.append( self.screwStep)
     allSteps.append( self.gradeStep)
     allSteps.append( self.endStep )
     
@@ -80,12 +81,14 @@ class PedicleScrewSimulatorWidget(ScriptedLoadableModuleWidget):
     self.workflow.addTransition( self.landmarksStep, self.measurementsStep, 'pass', ctk.ctkWorkflow.Bidirectional )
     self.workflow.addTransition( self.landmarksStep, self.measurementsStep, 'fail', ctk.ctkWorkflow.Bidirectional )
     
-    self.workflow.addTransition( self.measurementsStep, self.screwStep, 'pass', ctk.ctkWorkflow.Bidirectional )
-    self.workflow.addTransition( self.measurementsStep, self.screwStep, 'fail', ctk.ctkWorkflow.Bidirectional )
-    
-    self.workflow.addTransition( self.screwStep, self.gradeStep, 'pass', ctk.ctkWorkflow.Bidirectional )
-    self.workflow.addTransition( self.screwStep, self.gradeStep, 'fail', ctk.ctkWorkflow.Bidirectional )
-          
+    # self.workflow.addTransition( self.measurementsStep, self.screwStep, 'pass', ctk.ctkWorkflow.Bidirectional )
+    # self.workflow.addTransition( self.measurementsStep, self.screwStep, 'fail', ctk.ctkWorkflow.Bidirectional )
+    #
+    # self.workflow.addTransition( self.screwStep, self.gradeStep, 'pass', ctk.ctkWorkflow.Bidirectional )
+    # self.workflow.addTransition( self.screwStep, self.gradeStep, 'fail', ctk.ctkWorkflow.Bidirectional )
+    self.workflow.addTransition( self.measurementsStep, self.gradeStep, 'pass', ctk.ctkWorkflow.Bidirectional )
+    self.workflow.addTransition( self.measurementsStep, self.gradeStep, 'fail', ctk.ctkWorkflow.Bidirectional )
+
     self.workflow.addTransition( self.gradeStep, self.endStep )
            
     nNodes = slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLScriptedModuleNode')
@@ -120,8 +123,8 @@ class PedicleScrewSimulatorWidget(ScriptedLoadableModuleWidget):
         self.workflow.setInitialStep(self.measurementsStep)
       if currentStep == 'Landmarks':
         self.workflow.setInitialStep(self.landmarksStep)
-      if currentStep == 'Screw':
-        self.workflow.setInitialStep(self.screwStep) 
+      # if currentStep == 'Screw':
+      #   self.workflow.setInitialStep(self.screwStep)
       if currentStep == 'Grade':
         self.workflow.setInitialStep(self.gradeStep)   
       if currentStep == 'Final':
@@ -152,8 +155,7 @@ class PedicleScrewSimulatorWidget(ScriptedLoadableModuleWidget):
       'Helper',
       'LandmarksStep',
       'LoadDataStep',
-      'MeasurementsStep',
-      'ScrewStep']
+      'MeasurementsStep']
 
     import imp
     f, filename, description = imp.find_module(packageName)

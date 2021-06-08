@@ -61,7 +61,7 @@ class ScrewStep(PedicleScrewSimulatorStep):
       '''
       # Input fiducials node selector
       #self.inputFiducialsNodeSelector = slicer.qMRMLNodeComboBox()
-      self.inputFiducialsNodeSelector.toolTip = "Select a fiducial to define an insertion point for a screw."
+      self.inputFiducialsNodeSelector.toolTip = "Select a fid to define an insertion point for a screw."
       self.inputFiducialsNodeSelector.nodeTypes = (("vtkMRMLMarkupsFiducialNode"), "")
       self.inputFiducialsNodeSelector.addEnabled = False
       self.inputFiducialsNodeSelector.removeEnabled = False
@@ -120,7 +120,7 @@ class ScrewStep(PedicleScrewSimulatorStep):
       self.fiducial.addItems(self.fiduciallist)
       self.connect(self.fiducial, PythonQt.QtCore.SIGNAL('activated(QString)'), self.fiducial_chosen)
 
-      #self.screwGridLayout.addWidget(self.fiducial,0,0)
+      #self.screwGridLayout.addWidget(self.fid,0,0)
 
       self.__layout.addRow("Insertion Site:", self.fiducial)
       self.__fiducial = ''
@@ -678,7 +678,7 @@ class ScrewStep(PedicleScrewSimulatorStep):
 
         transformFid.UpdateScene(slicer.mrmlScene)
 
-        self.driveTemp = value
+        self.driveTemp = valuec
         '''
     def reverseScrew(self):
         if self.screwInsert < int(self.__diameter):
@@ -838,9 +838,9 @@ class ScrewStep(PedicleScrewSimulatorStep):
 
       logging.debug("Fiducial list: {0}".format(self.fiduciallist))
 
-      #self.fiducial.clear()
-      #self.fiducial.addItem("Select an insertion site")
-      #self.fiducial.addItems(self.fiduciallist)
+      #self.fid.clear()
+      #self.fid.addItem("Select an insertion site")
+      #self.fid.addItems(self.screwAng)
 
       super(ScrewStep, self).onEntry(comingFrom, transitionType)
 
