@@ -34,12 +34,11 @@ The author mainly made improvements to [LandmarksStep.py](https://github.com/las
 
 - Place **the Vertebral Anterior Point (VAP)** and **the Pedkcle Isthmus Point(PIP)** for each level
 
-![图 1](figs/9b7c3a163c01ba020c6b2e2827e0a14541f2bb6cf6183e3ac76ee75ab645fcd4.png)  
+
+![image](https://user-images.githubusercontent.com/10215735/121609351-38110500-ca86-11eb-922c-f1786921086a.png)
 
 
-![图 2](figs/29586f92c1188217d1d709f7e70c227f5c8f49beede7d90c26e195219c93c741.png)  
-
-
+![image](https://user-images.githubusercontent.com/10215735/121609404-5a0a8780-ca86-11eb-915f-e778c1c79ec7.png)
 
 
 
@@ -53,13 +52,14 @@ The author mainly made improvements to [LandmarksStep.py](https://github.com/las
     - After reaching the ideal size and angle,Click OK Generate the Screw.
 
 
-![ 4](figs/0390fdca2d4373dac95e8e659bdd4d482a716c7bfcaef3452de58ac220031281.png)  
+![image](https://user-images.githubusercontent.com/10215735/121609440-6bec2a80-ca86-11eb-93a6-b1996f4879da.png)
 
 
 - Click "Grade screws" to get detailed analysis of bone contact:
 
 
-![图 5](figs/605eb97172c130c3ce484348b7292b4d5cc74651c99be3abddd735782e574c9b.png)  
+![image](https://user-images.githubusercontent.com/10215735/121609462-7e666400-ca86-11eb-87b5-5b0273176498.png)
+
 
 
 
