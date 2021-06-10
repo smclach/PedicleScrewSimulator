@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="bb91af3c-68da-4b12-8c1c-9172c3c99fe4" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitToolBoxStore">
+    <option name="projectConfigVersion" value="2" />
+  </component>
+  <component name="ProjectId" id="1tg4SOWlhx0NtPflGhHaUrvfm1h" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="bb91af3c-68da-4b12-8c1c-9172c3c99fe4" name="Default Changelist" comment="" />
+      <created>1623177397574</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1623177397574</updated>
+      <workItem from="1623177399142" duration="2436000" />
+    </task>
+    <task id="LOCAL-00001" summary="jumbo">
+      <created>1623177442453</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1623177442453</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="jumbo" />
+    <option name="LAST_COMMIT_MESSAGE" value="jumbo" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="219" y="26" width="1002" height="871" key="#Plugins" timestamp="1623212437752">
+      <screen x="0" y="23" width="1440" height="877" />
+    </state>
+    <state x="219" y="26" width="1002" height="871" key="#Plugins/0.23.1440.877@0.23.1440.877" timestamp="1623212437752" />
+    <state x="77" y="23" key="CommitChangelistDialog2" timestamp="1623177442265">
+      <screen x="0" y="23" width="1440" height="877" />
+    </state>
+    <state x="77" y="23" key="CommitChangelistDialog2/0.23.1440.877@0.23.1440.877" timestamp="1623177442265" />
+    <state x="220" y="140" key="Vcs.Push.Dialog.v2" timestamp="1623177538906">
+      <screen x="0" y="23" width="1440" height="877" />
+    </state>
+    <state x="220" y="140" key="Vcs.Push.Dialog.v2/0.23.1440.877@0.23.1440.877" timestamp="1623177538906" />
+    <state x="281" y="216" key="git4idea.merge.GitPullDialog" timestamp="1623213745555">
+      <screen x="0" y="23" width="1440" height="877" />
+    </state>
+    <state x="281" y="216" key="git4idea.merge.GitPullDialog/0.23.1440.877@0.23.1440.877" timestamp="1623213745555" />
+    <state x="301" y="23" width="838" height="1032" key="search.everywhere.popup" timestamp="1623212231706">
+      <screen x="0" y="23" width="1440" height="877" />
+    </state>
+    <state x="301" y="23" width="838" height="1032" key="search.everywhere.popup/0.23.1440.877@0.23.1440.877" timestamp="1623212231706" />
+  </component>
+</project>
