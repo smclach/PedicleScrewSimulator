@@ -152,7 +152,7 @@ class Helper( object ):
       point_Ijk = [int(round(c)) for c in point_Ijk[0:3]]
       voxelValue = voxels[point_Ijk[2], point_Ijk[1], point_Ijk[0]]
       if voxelValue > thV:
-        Helper.addFid(P, 1, lableName="PB")
+        # Helper.addFid(P, 1, lableName="PB")
         return P
 
   @staticmethod
@@ -464,14 +464,17 @@ class Helper( object ):
     # Helper.addFid(PB0,lableName="PB00")
     Pa = lineN[1]
     # Dim = Helper.estimateDim(Pz, Pa)
-    Lscrew = lineN[2]
+    # Lscrew = lineN[2]
     if manulYN is False:
       PB = PB0
       PT = Pa
       Helper.delNode(lineNode)
       B_T = np.linalg.norm(PB - PT)
       Length = 5 * (B_T// 5) - B_T
-      screwDim = np.around(lineN[3], 1)
+      if sDim != 0:
+        screwDim = sDim
+      else:
+        screwDim = np.around(lineN[3], 1)
       Helper.p2pexLine(PB,PT,Length, screwDim,"w_{}_D:{}_L".format(No,screwDim),"red")
     else:
       PT = Pa
@@ -482,7 +485,9 @@ class Helper( object ):
       # logging.debug("PT:{}".format(PT))
       B_T = np.linalg.norm(PB - PT)
       Length =  5*(B_T//5)-B_T
-      screwDim = np.around(lineN[3],1)
+      PB_Pz = np.linalg.norm(PT - PB) * (Pz[1] - PB[1]) / (PT[1] - PB[1])
+      PZ = Helper.p2pexLine(PB, PT, 5 + PB_Pz - np.linalg.norm(PT - PB))
+      screwDim = Helper.estimateDim(PT, PZ)
       Helper.delNode(lineNode)
       Helper.p2pexLine(PB,PT,Length, screwDim,"w_{}_D:{}_L".format(No,screwDim),"red")
     return int(Length+B_T), screwDim,PB, PT
