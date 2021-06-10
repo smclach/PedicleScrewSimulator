@@ -69,7 +69,7 @@ class PlanningMeasurementsStep( PedicleScrewSimulatorStep ):
     self.fid = Helper.Screws()
 
     self.fids = len(self.fid)
-    self.fidlist = ["Choose the puncture site"]
+    self.fidlist = ["Choose the insertion site"]
     self.dimeter = []
     self.length = []
     self.PSA = []
