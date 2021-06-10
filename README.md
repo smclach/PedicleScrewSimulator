@@ -4,7 +4,7 @@
 
 
 
-> A new concise and unified imaging solution for percutaneous pedicle puncture.
+> A new concise and unified imaging solution for percutaneous pedicle insertion.
 
 
 
